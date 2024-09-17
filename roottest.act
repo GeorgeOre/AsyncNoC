@@ -1,0 +1,181 @@
+/* simple_child:
+
+ Description: Emulates the final output bus for packets to be sent & processed.
+        This is a root is designed to take in any combination of data 
+        permutations from the input bus. In testing, these ports can be watched.
+
+ Operation: The root begins by setting its output low. Then it waits for one
+        of the deterministically defined input permutations. Once all are 
+        received, it sends an acknowledge and waits until all data is off
+        to deactivate the acknowledge.
+
+ Features:
+    - 4 bit (8 line) input processing
+    - Can receive any permutation of data input
+    - Sends acks to the sender
+
+ Input Ports:   Name    |   Purpose
+                c[8]    |   8 bit bus containing child data   
+
+ Output Ports:  Name    |   Purpose
+                c_a     |   Child acknowledge
+
+ Error Handling:    None.
+ Known Bugs:        None.
+ Limitations:       None.
+
+ Revision History:  09/15/24    George Ore  First instance of code
+                    09/16/24    George Ore  wip
+
+ Pseudo Code
+   all_out_off();
+   while(1)
+       wait_for_child_data_on()
+       ack_on()
+       wait_for_child_data_off()
+       ack_off()
+*/
+defproc simple_child(bool! c[8]; bool? c_a){
+    
+    hse { 
+            c_a-;  //Start with the acknowledge off
+            
+            *[ /*Start off by waiting for one of the conditions to come true*/
+                
+                //I USED LITTLE ENDIAN SHOOT ME
+                [  c[0] & c[2] & c[4] & c[6] -> skip    //0000
+                [] c[1] & c[2] & c[4] & c[6] -> skip    //1000
+                [] c[0] & c[3] & c[4] & c[6] -> skip    //0100
+                [] c[1] & c[3] & c[4] & c[6] -> skip    //1100
+                [] c[0] & c[2] & c[5] & c[6] -> skip    //0010
+                [] c[1] & c[2] & c[5] & c[6] -> skip    //1010
+                [] c[0] & c[3] & c[5] & c[6] -> skip    //0110
+                [] c[1] & c[3] & c[5] & c[6] -> skip    //1110
+                [] c[0] & c[2] & c[4] & c[7] -> skip    //0001
+                [] c[1] & c[2] & c[4] & c[7] -> skip    //1001
+                [] c[0] & c[3] & c[4] & c[7] -> skip    //0101
+                [] c[1] & c[3] & c[4] & c[7] -> skip    //1101
+                [] c[0] & c[2] & c[5] & c[7] -> skip    //0011
+                [] c[1] & c[2] & c[5] & c[7] -> skip    //1011
+                [] c[0] & c[3] & c[5] & c[7] -> skip    //0111
+                [] c[1] & c[3] & c[5] & c[7] -> skip    //1111
+                ];
+            //THIS CAN BE XORED ^^^^
+
+            // for reference [c[0] | c[1] | c[2] | c[3] | c[4] | c[5] | c[6] | c[7]];
+
+            //Acknowledge that foo
+            c_a+;
+
+            //Now wait until all of them are off
+            [~c[0] & ~c[1] & ~c[2] & ~c[3] & ~c[4] & ~c[5] & ~c[6] & ~c[7]];
+
+            //Acknowledge that foo
+            c_a-
+            ]
+        }
+}
+
+/* test_root:
+
+ Description: Emulates the final output bus for packets to be sent & processed.
+        This is a root is designed to take in any combination of data 
+        permutations from the input bus. In testing, these ports can be watched.
+
+ Operation: The root begins by setting its output low. Then it waits for one
+        of the deterministically defined input permutations. Once all are 
+        received, it sends an acknowledge and waits until all data is off
+        to deactivate the acknowledge.
+
+ Features:
+    - 4 bit (8 line) input processing
+    - Can receive any permutation of data input
+    - Sends acks to the sender
+
+ Input Ports:   Name    |   Purpose
+                c[8]    |   8 bit bus containing child data   
+
+ Output Ports:  Name    |   Purpose
+                c_a     |   Child acknowledge
+
+ Error Handling:    None.
+ Known Bugs:        None.
+ Limitations:       None.
+
+ Revision History:  09/15/24    George Ore  First instance of code
+                    09/16/24    George Ore  wip
+
+ Pseudo Code
+   all_out_off();
+   while(1)
+       wait_for_child_data_on()
+       ack_on()
+       wait_for_child_data_off()
+       ack_off()
+*/
+defproc test_root(bool? c[8]; bool! c_a){
+    
+    hse { 
+            c_a-;  //Start with the acknowledge off
+            
+            *[ /*Start off by waiting for one of the conditions to come true*/
+                
+                //I USED LITTLE ENDIAN SHOOT ME
+                [  c[0] & c[2] & c[4] & c[6] -> skip    //0000
+                [] c[1] & c[2] & c[4] & c[6] -> skip    //1000
+                [] c[0] & c[3] & c[4] & c[6] -> skip    //0100
+                [] c[1] & c[3] & c[4] & c[6] -> skip    //1100
+                [] c[0] & c[2] & c[5] & c[6] -> skip    //0010
+                [] c[1] & c[2] & c[5] & c[6] -> skip    //1010
+                [] c[0] & c[3] & c[5] & c[6] -> skip    //0110
+                [] c[1] & c[3] & c[5] & c[6] -> skip    //1110
+                [] c[0] & c[2] & c[4] & c[7] -> skip    //0001
+                [] c[1] & c[2] & c[4] & c[7] -> skip    //1001
+                [] c[0] & c[3] & c[4] & c[7] -> skip    //0101
+                [] c[1] & c[3] & c[4] & c[7] -> skip    //1101
+                [] c[0] & c[2] & c[5] & c[7] -> skip    //0011
+                [] c[1] & c[2] & c[5] & c[7] -> skip    //1011
+                [] c[0] & c[3] & c[5] & c[7] -> skip    //0111
+                [] c[1] & c[3] & c[5] & c[7] -> skip    //1111
+                ];
+            //THIS CAN BE XORED ^^^^
+
+            // for reference [c[0] | c[1] | c[2] | c[3] | c[4] | c[5] | c[6] | c[7]];
+
+            //Acknowledge that foo
+            c_a+;
+
+            //Now wait until all of them are off
+            [~c[0] & ~c[1] & ~c[2] & ~c[3] & ~c[4] & ~c[5] & ~c[6] & ~c[7]];
+
+            //Acknowledge that foo
+            c_a-
+            ]
+        }
+}
+
+defproc test(){
+    // Create random source 
+    pint D_WIDTH = 3;
+    sim::rand::source_simple<D_WIDTH, 1, false> src;
+    // Setup reset signal
+    bool reset;
+
+    // Define a root node and a test child
+	test_root tr;
+    
+    // Connect wires
+    tc.R = src.0;
+    tc.reset = reset;
+    tc.p_a = tr.c_a;
+
+    tr.c[0] = tc.p0_0;
+    tr.c[1] = tc.p0_1;
+    tr.c[2] = tc.p1_0;
+    tr.c[3] = tc.p1_1;
+    tr.c[4] = tc.p2_0;
+    tr.c[5] = tc.p2_1;
+    tr.c[6] = tc.pt_0;
+    tr.c[7] = tc.pt_1;
+
+}

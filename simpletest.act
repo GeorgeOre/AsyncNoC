@@ -1,28 +1,90 @@
+/*;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                                                                              ;
+;                             parentchildtest.act  	                           ;
+;                                 George Ore                                   ;
+;                                                                              ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; Description: This file contains modules used to test the capabilies of a relay
+;               NoC. This is a test of that test.
+; Goal: Fine tune the testing environment for the NoC.
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                           Required Namespace Imports                        */
+import sim;     // Simulation library namespace
+/*;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                               Table of Contents
+;       Process Name    |       Purpose
+    testchild           |   Simulates a child that actively sends data on a bus
+    testroot            |   Simulates the final data destination bus
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Revision History:   09/15/24 George Ore   First instance of code
+;                     09/16/24 George Ore   Formated file
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;*/
 
-import sim;     // Find out what this is
+/*******************************************************************************
+;*                              PROCESSES                                      *
+;******************************************************************************/
 
-// I assume this one is to set the inital conditions of the test???
-defproc all_ack(bool? reset; bool? cc_i_a; bool? left_data_i_a; bool? right_data_i_a; bool? fine_data_i_a; bool! all_i_a){
-    prs{
-        ~reset & (cc_i_a | left_data_i_a | right_data_i_a | fine_data_i_a) -> all_i_a+
-        reset | ~(cc_i_a | left_data_i_a | right_data_i_a | fine_data_i_a) -> all_i_a-
-    }
-}
 
-/*
-Active Sender 
-*/
+/* test_child:
 
-/* test_child
-  This is a singular channel that send a silly little packet to be processed. 
+ Description: Generates random data to be sent up the network.
 
-  Features:
+ Operation: This child is meant to be attached to every node in the network.
+        To be robust, each child will have various parameters to simulate
+        variance in data. It must satisfy a triggering chance parameter before
+        starting the data transmission. At the trigger condition, it will select
+        a random packet length between 1-8. It will send four bit data words
+        with a binomial(.5) distribution for selecting 0 or 1 on the three data
+        bits. The final termination bit will be 0 until the final word of the
+        packet where it will be 1.
+
+ Features:
     - Variable firing chance
         FOR NOW HARD STUCK AT 12.5% FIRING CHANCE
     - Random packet length
         FOR NOW WE ARE HAVING A MINIMUM PACKET LENGTH OF 1 WORD
     - Randomized packet content
         FOR NOW HAS UNBIASES 50/50 CHANCE
+
+ Input Ports:   Name    |   Purpose
+                p_a     |   Parent acknowledge
+                R       |   Random 3 bit integer
+                reset   |   Reset signal
+
+ Output Ports:  Name    |   Purpose (for all: send generated data)
+                p0_0    |   Parent bit 0 low line 
+                p0_1    |   Parent bit 0 high line 
+                p1_0    |   Parent bit 1 low line
+                p1_1    |   Parent bit 1 high line
+                p2_0    |   Parent bit 2 low line
+                p2_1    |   Parent bit 2 high line
+                pt_0    |   Parent temination bit low line
+                pt_1    |   Parent termination bit high line
+
+Local variables:    Name    |   Purpose
+                    randc   |   Random activation chance var 
+                    randl   |   Random packet length var
+                    rand0   |   Random bit 0 data var
+                    rand1   |   Random bit 1 data var
+                    rand2   |   Random bit 2 data var
+
+ Error Handling:    None.
+ Known Bugs:        None.
+ Limitations:       None.
+
+ Revision History:  09/15/24    George Ore  First instance of code
+                    09/16/24    George Ore  wip
+
+ Pseudo Code:
+  while(1)
+    result = roll_dice()
+    if result = win
+      plength = roll_dice()
+      for (i=0; i<plength-1; i++)
+        send_packet(b0=roll_dice(), b1=roll_dice(), b2=roll_dice(), tcond=0)
+      send_packet(b0=roll_dice(), b1=roll_dice(), b2=roll_dice(), tcond=1)
 */
 defproc test_child(bool! p0_0; bool! p0_1;   //Output channels
                     bool! p1_0; bool! p1_1;
@@ -33,7 +95,7 @@ defproc test_child(bool! p0_0; bool! p0_1;   //Output channels
                     bool? reset){           //Reset signal
     int randc;  //Firing chance
     int randl;  //Packet length
-    int rand0;  //For random content
+    int rand0;  //For random bit content
     int rand1;
     int rand2;
     
@@ -81,18 +143,42 @@ defproc test_child(bool! p0_0; bool! p0_1;   //Output channels
     }
 }
 
-/*
-Passive Receiver 
-*/
+/* test_root:
 
-/* test_root
- This is a root that can take in any combination of data permutations.
+ Description: Emulates the final output bus for packets to be sent & processed.
+        This is a root is designed to take in any combination of data 
+        permutations from the input bus. In testing, these ports can be watched.
 
-  Features:
+ Operation: The root begins by setting its output low. Then it waits for one
+        of the deterministically defined input permutations. Once all are 
+        received, it sends an acknowledge and waits until all data is off
+        to deactivate the acknowledge.
+
+ Features:
     - 4 bit (8 line) input processing
     - Can receive any permutation of data input
-    - Sends acks
+    - Sends acks to the sender
 
+ Input Ports:   Name    |   Purpose
+                c[8]    |   8 bit bus containing child data   
+
+ Output Ports:  Name    |   Purpose
+                c_a     |   Child acknowledge
+
+ Error Handling:    None.
+ Known Bugs:        None.
+ Limitations:       None.
+
+ Revision History:  09/15/24    George Ore  First instance of code
+                    09/16/24    George Ore  wip
+
+ Pseudo Code
+   all_out_off();
+   while(1)
+       wait_for_child_data_on()
+       ack_on()
+       wait_for_child_data_off()
+       ack_off()
 */
 defproc test_root(bool? c[8]; bool! c_a){
     
