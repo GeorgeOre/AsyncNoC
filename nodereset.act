@@ -1,0 +1,490 @@
+
+import sim;     // Find out what this is
+
+// I assume this one is to set the inital conditions of the test???
+defproc all_ack(bool? reset; bool? cc_i_a; bool? left_data_i_a; bool? right_data_i_a; bool? fine_data_i_a; bool! all_i_a){
+    prs{
+        ~reset & (cc_i_a | left_data_i_a | right_data_i_a | fine_data_i_a) -> all_i_a+
+        reset | ~(cc_i_a | left_data_i_a | right_data_i_a | fine_data_i_a) -> all_i_a-
+    }
+}
+
+/*
+Active Sender 
+*/
+
+/* test_child
+  This is a singular channel that send a silly little packet to be processed. 
+
+  Features:
+    - Variable firing chance
+        FOR NOW HARD STUCK AT 12.5% FIRING CHANCE
+    - Random packet length
+        FOR NOW WE ARE HAVING A MINIMUM PACKET LENGTH OF 1 WORD
+    - Randomized packet content
+        FOR NOW HAS UNBIASES 50/50 CHANCE
+*/
+defproc test_child(bool! p0_0; bool! p0_1;   //Output channels
+                    bool! p1_0; bool! p1_1;
+                    bool! p2_0; bool! p2_1;
+                    bool! pt_0; bool! pt_1;
+                    bool? p_a;              //Input channels
+                    chan?(int<2>) R;        //Random source
+                    bool? reset){           //Reset signal
+    int randc;  //Firing chance
+    int randl;  //Packet length
+    int rand0;  //For random content
+    int rand1;
+    int rand2;
+    
+  chp {
+        //Reset all signals if reset condition is on
+        [reset -> p0_0-, p0_1-, p1_0-, p1_1-, p2_0-, p2_1-, pt_0-, pt_1-];
+
+        *[ /* fire if random chance condition is met */
+            R?randc;     //Roll for activation
+            [(randc = 3) ->
+                //OMG YOU GOT LUCKY IT ACTIVATED
+                R?randl;     //Roll for packet length
+                *[randl >= 0 -> //Send a random set of bits for each word 
+
+                    [ /* send random data in parallel */
+                        R?rand0;//Roll for bit value 0
+                        [  (rand0 > 3) -> p0_0+; [pa]; p0_0-; [~pa]
+                        [] (rand0 < 4) -> p0_1+; [pa]; p0_1-; [~pa]
+                        ]
+                    |
+                        R?rand1;//Roll for bit value 1
+                        [  (rand1 > 3) -> p1_0+; [pa]; p1_0-; [~pa]
+                        [] (rand1 < 4) -> p1_1+; [pa]; p1_1-; [~pa]
+                        ]
+                    |
+                        R?rand2;//Roll for bit value 2
+                        [  (rand2 > 3) -> p2_0+; [pa]; p2_0-; [~pa]
+                        [] (rand2 < 4) -> p2_1+; [pa]; p2_1-; [~pa]
+                        ]
+                    |
+                        //Bit value t must be 0 until the last word
+                        [  (randl != 0) -> pt_0+; [pa]; pt_0-; [~pa]
+                        [] (randl  = 0) -> pt_1+; [pa]; pt_1-; [~pa]
+                        ]
+                    ];
+
+                    randl := randl - 1
+                ]
+            [] (randc != 3) -> 
+                //If not then you are unlucky :(
+                skip
+            ]
+            //ADD A WAIT OR DELAY???????
+        ]
+    }
+}
+
+/*
+Passive Receiver 
+*/
+
+/* test_root
+ This is a root that can take in any combination of data permutations.
+
+  Features:
+    - 4 bit (8 line) input processing
+    - Can receive any permutation of data input
+    - Sends acks
+
+*/
+defproc test_root(bool? c[8]; bool! c_a){
+    
+    hse { 
+            c_a-;  //Start with the acknowledge off
+            
+            *[ /*Start off by waiting for one of the conditions to come true*/
+                
+                //I USED LITTLE ENDIAN SHOOT ME
+                [  c[0] & c[2] & c[4] & c[6]    //0000
+                [] c[1] & c[2] & c[4] & c[6]    //1000
+                [] c[0] & c[3] & c[4] & c[6]    //0100
+                [] c[1] & c[3] & c[4] & c[6]    //1100
+                [] c[0] & c[2] & c[5] & c[6]    //0010
+                [] c[1] & c[2] & c[5] & c[6]    //1010
+                [] c[0] & c[3] & c[5] & c[6]    //0110
+                [] c[1] & c[3] & c[5] & c[6]    //1110
+                [] c[0] & c[2] & c[4] & c[7]    //0001
+                [] c[1] & c[2] & c[4] & c[7]    //1001
+                [] c[0] & c[3] & c[4] & c[7]    //0101
+                [] c[1] & c[3] & c[4] & c[7]    //1101
+                [] c[0] & c[2] & c[5] & c[7]    //0011
+                [] c[1] & c[2] & c[5] & c[7]    //1011
+                [] c[0] & c[3] & c[5] & c[7]    //0111
+                [] c[1] & c[3] & c[5] & c[7]    //1111
+                ];
+
+            // for reference [c[0] | c[1] | c[2] | c[3] | c[4] | c[5] | c[6] | c[7]];
+
+            //Acknowledge that foo
+            c_a+;
+
+            //Now wait until all of them are off
+            [~c[0] & ~c[1] & ~c[2] & ~c[3] & ~c[4] & ~c[5] & ~c[6] & ~c[7]];
+
+            //Acknowledge that foo
+            c_a-
+            ]
+        }
+}
+
+/*
+Custom Modules
+*/
+
+/*  ctl_tag 
+
+    Contains the PRS for the combination of address tagging and sequence control blocks.
+
+    reset - signal to reset this thing??
+
+
+*/
+defproc ctl_tag(bool? reset;        //For reseting
+                bool? l_r; bool? r_a; bool? x_r; bool? p_a; //Inputs 
+		        bool! l_a; bool! r_r; bool? x_a; bool! p_0; //Outputs
+                bool! p_1){
+
+	bool w[2];  //????????
+	bool w_s;
+
+    // state variable
+    bool a_r; bool a_a;
+    bool f; bool g;
+    bool n; bool m;
+     prs {
+
+        //CTL
+        (x_r | l_r ) & (~a_a) -> r_r+ 
+        a_a -> r_r-
+
+        ~reset & l_a -> a_r+
+        reset | ~l_a -> a_r-
+
+        ~reset & (l_r & r_a) -> l_a+
+        reset | (~r_a) -> l_a-
+
+        //TAG
+        ~reset & (f & ~g & x_r & ~x_a & a_r & ~a_a & ~p_0 & ~p_1 & ~p_a) -> x_a+
+        reset | (f & ~g & ~x_r & x_a & a_r & ~a_a & ~p_0 & ~p_1 & ~p_a) -> x_a-
+
+        ~reset & ((f ^ g) & ~x_r & ~x_a & a_r & ~a_a & ~p_0 & ~p_1 & ~p_a) -> a_a+
+        reset | (~f & ~g & ~x_r & ~x_a & ~a_r & a_a & ~p_0 & ~p_1 & ~p_a) -> a_a-
+
+        ~reset & (~f & g & ~x_r & ~x_a & ~a_r & a_a & ~p_0 & ~p_1 & ~p_a) -> p_0+
+        reset | (~f & ~g & ~x_r & ~x_a & ~a_r & a_a & p_0 & ~p_1 & p_a) -> p_0-
+
+        ~reset & (f & ~g & ~x_r & ~x_a & ~a_r & a_a & ~p_0 & ~p_1 & ~p_a) -> p_1+
+        reset | (~f & ~g & ~x_r & ~x_a & ~a_r & a_a & ~p_0 & p_1 & p_a) -> p_1-
+
+        ~reset & (~f & ~g & x_r & ~x_a & a_r & ~a_a & ~p_0 & ~p_1 & ~p_a) -> f+
+        reset | (f & ~g & ~x_r & ~x_a & ~a_r & a_a & ~p_0 & p_1 & p_a) -> f-
+
+        ~reset & (~f & ~g & ~x_r & ~x_a & a_r & ~a_a & ~p_0 & ~p_1 & ~p_a) -> g+
+        reset | (~f & g & ~x_r & ~x_a & ~a_r & a_a & p_0 & ~p_1 & ~p_a) -> g-
+
+    }
+}
+
+/*  ctl_h
+
+    Contains the PRS for the special control block CTL_H
+
+    reset - signal to reset this thing??
+
+
+*/
+defproc ctl_h(bool? reset;        //For reseting
+                bool? l_r; bool? r_a; bool? p_a; //Inputs 
+		        bool? p_0; bool? p_1;
+                bool! l_a; bool! r_r; bool! p_f; //Outputs
+                ){
+
+	bool w[2];  //????????
+	bool w_s;
+
+    // state variable
+    bool a_r; bool a_a;
+    bool f; bool g;
+    bool n; bool m;
+     prs {
+
+        //CTL
+        (l_a) & (~r_a) -> r_r+ 
+        r_a -> r_r-
+
+        ~reset & (l_r) -> l_a+
+        reset | (~l_r) -> l_a-
+
+        ~reset & ( p_0 | p_1 ) -> p_f+
+        reset | ( ~p_0 & ~p_1 ) -> p_f-
+    }
+}
+
+/*  buffer
+
+    Contains the PRS for the data information line buffers.
+
+    reset - signal to reset this thing??
+
+
+*/
+defproc buffer(bool? reset;             //For reseting
+		        bool? c0_0; bool? c0_1; //Inputs
+                bool? c1_0; bool? c1_1;
+                bool? c2_0; bool? c2_1;
+                bool? ct_0; bool? ct_1;
+                bool? p_a; bool? x_a;
+                bool! c_a; bool! x_r;   //Outputs 
+                bool! p0_0; bool! p0_1;
+                bool! p1_0; bool! p1_1;
+                bool! p2_0; bool! p2_1; 
+                bool! pt_0 ){
+	bool w[2];
+	bool w_s;
+    // state variable
+    bool a;
+     prs {
+
+        //a
+        ~reset & (~a & ~x_r & ~x_a
+        & ~c_a & (c0_0 | ~c0_1 | ~c1_0 | ~c1_1 | ~c2_0 | ~c2_1) & (ct_0) & ~ct_1 
+        & ~p_a & ~p0_0 & ~p0_1 & ~p1_0 & ~p1_1 & ~p2_0 & ~p2_1 & ~pt_0) -> a+ 
+        ~reset & (a & x_r & x_a
+        & ~c_a & (c0_0 ^ c0_1) & (c1_0 ^ c1_1) & (c2_0 ^ c2_1) & ~ct_0 & (ct_1) 
+        & ~p_a & ~p0_0 & ~p0_1 & ~p1_0 & ~p1_1 & ~p2_0 & ~p2_1 & ~pt_0) -> a-
+
+        //x_r
+        ~reset & (a & ~x_r & ~x_a
+        & ~c_a & (c0_0 | ~c0_1 | ~c1_0 | ~c1_1 | ~c2_0 | ~c2_1) & (ct_0) & ~ct_1 
+        & ~p_a & ~p0_0 & ~p0_1 & ~p1_0 & ~p1_1 & ~p2_0 & ~p2_1 & ~pt_0) -> x_r+
+        ~reset & (~a & x_r & x_a
+        & ~c_a & ~c0_0 & ~c0_1 & ~c1_0 & ~c1_1 & ~c2_0 & ~c2_1 & ~ct_0 & ~ct_1 
+        & ~p_a & ~p0_0 & ~p0_1 & ~p1_0 & ~p1_1 & ~p2_0 & ~p2_1 & ~pt_0) -> x_r-
+
+        //c_a
+      ( ~reset & ((a) & x_r & x_a  //Intended behavior given ct_1 was NOT activated
+        & ~c_a & (c0_0 ^ c0_1) & (c1_0 ^ c1_1) & (c2_0 ^ c2_1) & (ct_0) & ~ct_1 
+        & ~p_a & (p0_0 ^ p0_1) & (p1_0 ^ p1_1) & (p2_0 ^ p2_1) & pt_0) ) 
+     |( ~reset & ((~a) & x_r & x_a  //Intended behavior given ct_1 was activated
+        & ~c_a & (c0_0 ^ c0_1) & (c1_0 ^ c1_1) & (c2_0 ^ c2_1) & ~ct_0 & (ct_1) 
+        & ~p_a & (p0_0 ^ p0_1) & (p1_0 ^ p1_1) & (p2_0 ^ p2_1) & pt_0) )-> c_a+ 
+
+      ( ~reset & ((a) & x_r & x_a  //Intended behavior given ct_1 was NOT activated
+        & c_a & ~c0_0 & ~c0_1 & ~c1_0 & ~c1_1 & ~c2_0 & ~c2_1 & ~ct_0 & ~ct_1 
+        & p_a & (p0_0 ^ p0_1) & (p1_0 ^ p1_1) & (p2_0 ^ p2_1) & pt_0) ) 
+     |( ~reset & ((~a) & x_r & x_a  //Intended behavior given ct_1 was activated
+        & c_a & ~c0_0 & ~c0_1 & ~c1_0 & ~c1_1 & ~c2_0 & ~c2_1 & ~ct_0 & ~ct_1 
+        & p_a & (p0_0 ^ p0_1) & (p1_0 ^ p1_1) & (p2_0 ^ p2_1) & pt_0) )-> c_a-
+    //The above can be easily condensed by removing a probably
+
+
+        //p0_0
+        ~reset & ((a ^ ~a) & x_r & x_a
+        & ~c_a & c0_0 & ~c0_1 /*& ~c1_0 & ~c1_1 & ~c2_0 & ~c2_1*/ & (ct_0 ^ ct_1) 
+        & ~p_a & ~p0_0 & ~p0_1 /*& ~p1_0 & ~p1_1 & ~p2_0 & ~p2_1*/ & ~pt_0) -> p0_0+ 
+        ~reset & ((a ^ ~a) & x_r & x_a
+        & ~c_a & ~c0_0 & ~c0_1 & ~c1_0 & ~c1_1 & ~c2_0 & ~c2_1 & ~ct_0 & ~ct_1 
+        & (p_a) & p0_0 & ~p0_1 /*& ~p1_0 & ~p1_1 & ~p2_0 & ~p2_1*/ & (pt_0)) -> p0_0-
+
+        //p0_1
+        ~reset & ((a ^ ~a) & x_r & x_a
+        & ~c_a & ~c0_0 & c0_1 /*& ~c1_0 & ~c1_1 & ~c2_0 & ~c2_1*/ & (ct_0 ^ ct_1) 
+        & ~p_a & ~p0_0 & ~p0_1 /*& ~p1_0 & ~p1_1 & ~p2_0 & ~p2_1*/ & ~pt_0) -> p0_1+ 
+        ~reset & ((a ^ ~a) & x_r & x_a
+        & ~c_a & ~c0_0 & ~c0_1 & ~c1_0 & ~c1_1 & ~c2_0 & ~c2_1 & ~ct_0 & ~ct_1 
+        & (p_a) & ~p0_0 & p0_1 /*& ~p1_0 & ~p1_1 & ~p2_0 & ~p2_1*/ & (pt_0)) -> p0_1-
+
+        //p1_0
+        ~reset & ((a ^ ~a) & x_r & x_a
+        & ~c_a & /*c0_0 & ~c0_1 &*/ c1_0 & ~c1_1 /*& ~c2_0 & ~c2_1*/ & (ct_0 ^ ct_1) 
+        & ~p_a & /*~p0_0 & ~p0_1 /*& ~p1_0 & ~p1_1 & ~p2_0 & ~p2_1*/ & ~pt_0) -> p1_0+ 
+        ~reset & ((a ^ ~a) & x_r & x_a
+        & ~c_a & ~c0_0 & ~c0_1 & ~c1_0 & ~c1_1 & ~c2_0 & ~c2_1 & ~ct_0 & ~ct_1 
+        & (p_a) & /*p0_0 & ~p0_1 &*/ p1_0 & ~p1_1 /*& ~p2_0 & ~p2_1*/ & (pt_0)) -> p1_0-
+
+        //p1_1
+        ~reset & ((a ^ ~a) & x_r & x_a
+        & ~c_a & /*c0_0 & ~c0_1 &*/ ~c1_0 & c1_1 /*& ~c2_0 & ~c2_1*/ & (ct_0 ^ ct_1) 
+        & ~p_a & /*~p0_0 & ~p0_1 /*& ~p1_0 & ~p1_1 & ~p2_0 & ~p2_1*/ & ~pt_0) -> p1_1+ 
+        ~reset & ((a ^ ~a) & x_r & x_a
+        & ~c_a & ~c0_0 & ~c0_1 & ~c1_0 & ~c1_1 & ~c2_0 & ~c2_1 & ~ct_0 & ~ct_1 
+        & (p_a) & /*p0_0 & ~p0_1 &*/ ~p1_0 & p1_1 /*& ~p2_0 & ~p2_1*/ & (pt_0)) -> p1_1-
+
+        //p2_0
+        ~reset & ((a ^ ~a) & x_r & x_a
+        & ~c_a & /*~c0_0 & ~c0_1 & ~c1_0 & ~c1_1 &*/ c2_0 & ~c2_1 & (ct_0 ^ ct_1) 
+        & ~p_a & /*~p0_0 & ~p0_1 & ~p1_0 & ~p1_1 & ~p2_0 & ~p2_1*/ & ~pt_0) -> p2_0+ 
+        ~reset & ((a ^ ~a) & x_r & x_a
+        & ~c_a & ~c0_0 & ~c0_1 & ~c1_0 & ~c1_1 & ~c2_0 & ~c2_1 & ~ct_0 & ~ct_1 
+        & (p_a) & /*~p0_0 & ~p0_1 & ~p1_0 & ~p1_1 &*/ p2_0 & ~p2_1 & (pt_0)) -> p2_0-
+
+        //p2_1
+        ~reset & ((a ^ ~a) & x_r & x_a
+        & ~c_a & /*~c0_0 & ~c0_1 & ~c1_0 & ~c1_1 &*/ ~c2_0 & c2_1 & (ct_0 ^ ct_1) 
+        & ~p_a & /*~p0_0 & ~p0_1 & ~p1_0 & ~p1_1 & ~p2_0 & ~p2_1*/ & ~pt_0) -> p2_1+ 
+        ~reset & ((a ^ ~a) & x_r & x_a
+        & ~c_a & ~c0_0 & ~c0_1 & ~c1_0 & ~c1_1 & ~c2_0 & ~c2_1 & ~ct_0 & ~ct_1 
+        & (p_a) & /*~p0_0 & ~p0_1 & ~p1_0 & ~p1_1 &*/ ~p2_0 & p2_1 & (pt_0)) -> p2_1-
+
+        //pt_0
+        ~reset & ((a ^ ~a) & x_r & x_a
+        & ~c_a & (c0_0 ^ c0_1) & (c1_0 ^ c1_1) & (c2_0 ^ c2_1) & (ct_0 ^ ct_1)
+        & ~p_a & (p0_0 ^ p0_1) & (p1_0 ^ p1_1) & (p2_0 ^ p2_1) & ~pt_0) -> pt_0+ 
+        ~reset & ((a ^ ~a) & x_r & x_a
+        & ~c_a & ~c0_0 & ~c0_1 & ~c1_0 & ~c1_1 & ~c2_0 & ~c2_1 & ~ct_0 & ~ct_1 
+        & (p_a) & ~p0_0 & ~p0_1 & ~p1_0 & ~p1_1 & ~p2_0 & ~p2_1 & (pt_0)) -> pt_0-
+
+    }
+}
+
+
+defproc choose_child(bool? reset; bool? i[2]; bool? i_s; bool? i_t; bool? l_a; bool? r_a; bool? f_a;
+		     bool! i_a; bool! l_r; bool! r_r; bool! f_r ){
+	bool w[2];
+	bool w_s;
+    // state variable
+    bool v;
+     prs {
+
+        (w[0] | w[1] | w_s) & ((l_a | r_a | f_a) | i_a) -> v+ 
+        (~w[0] & ~w[1] & ~w_s) & ((~l_a & ~r_a & ~f_a) & ~i_a) -> v-
+
+        ~reset & (~v & i[0] & ~i_t & ~l_a) -> w[0]+
+        reset | (v & ~i[0] & i_t & l_a) -> w[0]-
+
+        ~reset & (~v & i[1] & ~i_t & ~r_a) -> w[1]+
+        reset | (v & ~i[1] & i_t & r_a) -> w[1]-
+
+        ~reset & (~v & i_s & ~i_t & ~f_a) -> w_s+
+        reset | (v & ~i_s & i_t & f_a) -> w_s-
+
+        v & ~i_a & w[0] -> l_r+
+        ~v | ~w[0] | i_a -> l_r-
+
+        v & ~i_a & w[1] -> r_r+
+        ~v | ~w[1] | i_a -> r_r-
+
+        v & ~i_a & w_s -> f_r+
+        ~v | ~w_s | i_a -> f_r-
+
+        ~reset & (~v & ((w[0] | w[1] | w_s) & (i[0] | i[1] | i_s))) -> i_a+
+        reset | (v & ((~w[0] & ~w[1] & ~w_s) | (~i[0] & ~i[1] & ~i_s))) -> i_a-
+    }
+}
+defproc data(bool? reset; bool? p_r; bool? i[2]; bool? i_s; bool? i_t; bool? o_a;
+	      bool! p_a; bool! o[2]; bool! o_s; bool! o_t; bool! i_a){
+
+    // state variable           
+	bool z;
+	prs{
+        ~reset & ((p_r & (~p_a| i_t))| i_a) -> z+
+        reset | (~p_r &  p_a & ~i_t & ~i_a) -> z-
+
+        z -> p_a+
+        ~z -> p_a-
+
+        o_a -> i_a+
+        ~o_a -> i_a-
+
+        p_r & p_a & i[0] -> o[0]+
+        ~p_r |~p_a | ~i[0] -> o[0]-
+
+        p_r & p_a & i[1] -> o[1]+
+        ~p_r | ~p_a | ~i[1] -> o[1]-
+
+        p_r &  p_a & i_s -> o_s+
+        ~p_r | ~p_a | ~i_s -> o_s-
+
+        p_a & ~p_r & i_t  -> o_t+
+        ~p_a | p_r | ~i_t -> o_t-
+    }
+}
+defproc node(bool? reset; bool? i[2]; bool? i_s; bool? i_t; 
+bool? o_la; bool? o_ra; bool? o_fa; 
+bool! all_i_a; 
+bool! ol[2]; bool! ol_s; bool! ol_t; bool! or[2]; bool! or_s; bool! or_t; bool! of[2]; bool! of_s; bool! of_t) {
+	choose_child cc;
+	data left;
+    data right;
+    data fine;
+    all_ack all_ack1;
+
+    all_ack1.cc_i_a = cc.i_a;
+    all_ack1.left_data_i_a = left.i_a;
+    all_ack1.right_data_i_a = right.i_a;
+    all_ack1.fine_data_i_a = fine.i_a;
+    all_i_a = all_ack1.all_i_a;
+    all_ack1.reset =reset;
+    cc.reset = reset;
+    left.reset = reset;
+    right.reset = reset;
+    fine.reset = reset;
+
+	cc.i[0] = i[0]; cc.i[1] = i[1]; cc.i_s = i_s; cc.i_t = i_t;
+	cc.l_a = left.p_a;
+	cc.r_a = right.p_a;
+	cc.f_a = fine.p_a;
+	left.p_r = cc.l_r;
+	right.p_r = cc.r_r;
+	fine.p_r = cc.f_r;
+	
+	left.i[0] = i[0]; left.i[1] = i[1]; left.i_s = i_s; left.i_t = i_t;
+	left.o_a = o_la;
+	ol[0] = left.o[0];
+	ol[1] = left.o[1];
+	ol_s = left.o_s;
+	ol_t = left.o_t;
+
+	right.i[0] = i[0]; right.i[1] = i[1]; right.i_s = i_s; right.i_t = i_t;
+	right.o_a = o_ra;
+    or[0] = right.o[0];
+	or[1] = right.o[1];
+	or_s = right.o_s;
+	or_t = right.o_t;
+
+	fine.i[0] = i[0]; fine.i[1] = i[1]; fine.i_s = i_s; fine.i_t = i_t;
+	fine.o_a = o_fa;
+    of[0] = fine.o[0];
+	of[1] = fine.o[1];
+	of_s = fine.o_s;
+	of_t = fine.o_t;
+}
+
+
+
+
+defproc test(){
+    // Create random source 
+    pint D_WIDTH = 3;
+    sim::rand::source_simple<D_WIDTH, 1, false> src;
+    // Setup reset signal
+    bool reset;
+
+    // Define a root node and a test child
+	test_child tc;
+	test_root tr;
+    
+    // Connect wires
+    tc.R = src.0;
+    tc.reset = reset;
+    tc.p_a = tr.c_a;
+
+    tr.c[0] = tc.p0_0;
+    tr.c[1] = tc.p0_1;
+    tr.c[2] = tc.p1_0;
+    tr.c[3] = tc.p1_1;
+    tr.c[4] = tc.p2_0;
+    tr.c[5] = tc.p2_1;
+    tr.c[6] = tc.pt_0;
+    tr.c[7] = tc.pt_1;
+
+
+}
+

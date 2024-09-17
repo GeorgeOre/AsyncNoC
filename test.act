@@ -1,0 +1,16 @@
+/* test environment for node.act */
+
+import "nodenewprs.act";
+	
+
+defproc test() 
+{
+        bool reset;
+		bool ci[2];
+		bool ci_s;
+		bool ci 
+	everything e ;
+	e.reset = reset;
+	
+}
+
