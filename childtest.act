@@ -6,7 +6,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
  Description: This file is to test the capabilies of the child testing module.
- Goal: Make sure that the test_child module works as intended.
+ Goal: Make sure that the test_child module works as intended with all features.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                             Required Namespace Imports                        */
@@ -14,132 +14,140 @@ import sim;     // Simulation library namespace
 /*;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                             Table of Contents
         Process Name    |       Purpose
-    simplechild         |   Simulates a simple child that sends known bused data
-    testroot            |   Recieves all manner of data on a bus
+    test_child          |   Simulates a simple child that sends known bused data
+    test_root           |   Recieves all manner of data on a bus
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
  Revision History:  09/16/24 George Ore Created file
-                    09/16/24 George Ore 
+                    09/16/24 George Ore Validated and tested working
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;*/
 
 /*******************************************************************************
 ;*                              PROCESSES                                      *
 ;******************************************************************************/
 
-/* simple_child:
+/* test_child:
 
- Description: Simulates a simple child that sends known data through a bus.
+ Description: Generates random data to be sent up the network. This child is
+        meant to be attached to every node in the network.
 
- Operation: The child begins by waiting until the ack input is low. Next it
-        sends known permutations of data through its bus in sequential order. 
-        It follows standard handshaking all throughout.
+ Operation: The module resets all of its outputs before begining an infinite
+        loop. To be robust, each child will have various parameters to simulate
+        variance in data. It must satisfy a triggering chance parameter before
+        starting the data transmission. At the trigger condition, it will select
+        a random packet length between 1-8. It will send four bit data words
+        with a binomial(.5) distribution for selecting 0 or 1 on the three data
+        bits. The final termination bit will be 0 until the final word of the
+        packet where it will be 1.
 
  Features:
-    - 4 bit (8 line) output but
-    - All 16 permutations of data output
-    - Waits for acks from receiver
+    - Variable firing chance
+        FOR NOW HARD STUCK AT 12.5% FIRING CHANCE
+    - Random packet length
+        FOR NOW WE ARE HAVING A MINIMUM PACKET LENGTH OF 1 WORD
+    - Randomized packet content
+        FOR NOW HAS UNBIASES 50/50 CHANCE
 
  Input Ports:   Name    |   Purpose
                 p_a     |   Parent acknowledge
+                R       |   Random 3 bit integer
+                reset   |   Reset signal
 
- Output Ports:  Name    |   Purpose
-                p[8]    |   8 bit bus containing child data
+ Output Ports:  Name    |   Purpose (for all: send generated data)
+                p0_0    |   Parent bit 0 low line 
+                p0_1    |   Parent bit 0 high line 
+                p1_0    |   Parent bit 1 low line
+                p1_1    |   Parent bit 1 high line
+                p2_0    |   Parent bit 2 low line
+                p2_1    |   Parent bit 2 high line
+                pt_0    |   Parent temination bit low line
+                pt_1    |   Parent termination bit high line
+
+ Local variables:   Name    |   Purpose
+                    randc   |   Random activation chance var 
+                    randl   |   Random packet length var
+                    rand0   |   Random bit 0 data var
+                    rand1   |   Random bit 1 data var
+                    rand2   |   Random bit 2 data var
 
  Error Handling:    None.
  Known Bugs:        None.
  Limitations:       None.
 
- Revision History:  09/16/24    George Ore  Created module
-                    09/16/24    George Ore  wip
+ Revision History:  09/15/24    George Ore  First instance of code
+                    09/16/24    George Ore  Made it work good
 
- Pseudo Code
-   wait_ack_off();
-   for permutation in {0,1}^4
-       data_on(permutation)
-       wait_ack_on()
-       data_off(permutation)
-       wait_ack_off()
+ Pseudo Code:
+  
+  while(1)
+    result = roll_dice()
+    if result == win
+      plength = roll_dice()
+      for (i=0; i<plength-1; i++)
+        send_packet(b0=roll_dice(), b1=roll_dice(), b2=roll_dice(), tcond=0)
+      send_packet(b0=roll_dice(), b1=roll_dice(), b2=roll_dice(), tcond=1)
 */
-defproc simple_child(bool! p[8]; bool? p_a; bool? reset){
+defproc test_child(bool! p0_0; bool! p0_1;   //Output channels
+                    bool! p1_0; bool! p1_1;
+                    bool! p2_0; bool! p2_1;
+                    bool! pt_0; bool! pt_1;
+                    bool? p_a;              //Input channels
+                    chan?(int<3>) R;        //Random source
+                    bool? reset){           //Reset signal
+    int randc;  //Firing chance
+    int randl;  //Packet length
+    int rand0;  //For random bit content
+    int rand1;
+    int rand2;
     
-    hse { 
-            [reset];    //Wait until it is reset time
-            [~p_a];     //Wait until ack is off
-            p[0]-; p[1]-; p[2]-; p[3]-; p[4]-; p[5]-; p[6]-; p[7]-; //Turn all off
-            
+  chp {
+        //Reset all signals if reset condition is on
+        [reset -> p0_0-, p0_1-, p1_0-, p1_1-, p2_0-, p2_1-, pt_0-, pt_1-];
+        log("finished init inside test child");
+        [~reset];
+        log("reset off in test child");
 
-            log("finished init inside simple child");            
+        *[ /* fire if random chance condition is met */
+            log("inside loop");
+            R?randc;     //Roll for activation
+            log("just rolled");
+            [(randc = 3) ->
+                //OMG YOU GOT LUCKY IT ACTIVATED
+                log("omg lucky");
+                R?randl;     //Roll for packet length
+                *[randl < 8 -> //Send a random set of bits for each word 
 
-            [~reset];
-            log("reset off in test root");
+                    /* Roll for three bits of random data */
+                    R?rand0;
+                    R?rand1;
+                    R?rand2;
 
-            //Send various permutations of data
-            p[0]+; p[2]+; p[4]+; p[6]+;    //0000
-            [p_a];
-            p[0]-; p[2]-; p[4]-; p[6]-;
-            [~p_a];
-            p[1]+; p[2]+; p[4]+; p[6]+;    //1000
-            [p_a];
-            p[1]-; p[2]-; p[4]-; p[6]-;
-            [~p_a];
-            p[0]+; p[3]+; p[4]+; p[6]+;    //0100
-            [p_a];
-            p[0]-; p[3]-; p[4]-; p[6]-; 
-            [~p_a];
-            p[1]+; p[3]+; p[4]+; p[6]+;    //1100
-            [p_a];
-            p[1]-; p[3]-; p[4]-; p[6]-; 
-            [~p_a];
-            p[0]+; p[2]+; p[5]+; p[6]+;    //0010
-            [p_a];
-            p[0]-; p[2]-; p[5]-; p[6]-; 
-            [~p_a];
-            p[1]+; p[2]+; p[5]+; p[6]+;    //1010
-            [p_a];
-            p[1]-; p[2]-; p[5]-; p[6]-; 
-            [~p_a];
-            p[0]+; p[3]+; p[5]+; p[6]+;    //0110
-            [p_a];
-            p[0]-; p[3]-; p[5]-; p[6]-; 
-            [~p_a];
-            p[1]+; p[3]+; p[5]+; p[6]+;    //1110
-            [p_a];
-            p[1]-; p[3]-; p[5]-; p[6]-; 
-            [~p_a];
-            p[0]+; p[2]+; p[4]+; p[7]+;    //0001
-            [p_a];
-            p[0]-; p[2]-; p[4]-; p[7]-; 
-            [~p_a];
-            p[1]+; p[2]+; p[4]+; p[7]+;    //1001
-            [p_a];
-            p[1]-; p[2]-; p[4]-; p[7]-; 
-            [~p_a];
-            p[0]+; p[3]+; p[4]+; p[7]+;    //0101
-            [p_a];
-            p[0]-; p[3]-; p[4]-; p[7]-; 
-            [~p_a];
-            p[1]+; p[3]+; p[4]+; p[7]+;    //1101
-            [p_a];
-            p[1]-; p[3]-; p[4]-; p[7]-; 
-            [~p_a];
-            p[0]+; p[2]+; p[5]+; p[7]+;    //0011
-            [p_a];
-            p[0]-; p[2]-; p[5]-; p[7]-; 
-            [~p_a];
-            p[1]+; p[2]+; p[5]+; p[7]+;    //1011
-            [p_a];
-            p[1]-; p[2]-; p[5]-; p[7]-; 
-            [~p_a];
-            p[0]+; p[3]+; p[5]+; p[7]+;    //0111
-            [p_a];
-            p[0]-; p[3]-; p[5]-; p[7]-; 
-            [~p_a];
-            p[1]+; p[3]+; p[5]+; p[7]+;    //1111
-            [p_a];
-            p[1]-; p[3]-; p[5]-; p[7]-; 
-            [~p_a]
+                    /* send random data in parallel */
+                    [  (rand0 > 3) -> p0_0+; [p_a]; p0_0-; [~p_a]
+                    [] (rand0 < 4) -> p0_1+; [p_a]; p0_1-; [~p_a]
+                    ],
+                    [  (rand1 > 3) -> p1_0+; [p_a]; p1_0-; [~p_a]
+                    [] (rand1 < 4) -> p1_1+; [p_a]; p1_1-; [~p_a]
+                    ],
+                    [  (rand2 > 3) -> p2_0+; [p_a]; p2_0-; [~p_a]
+                    [] (rand2 < 4) -> p2_1+; [p_a]; p2_1-; [~p_a]
+                    ],
+                    //Bit value t must be 0 until the last word
+                    [  (randl != 0) -> pt_0+; [p_a]; pt_0-; [~p_a]
+                    [] (randl  = 0) -> pt_1+; [p_a]; pt_1-; [~p_a]
+                    ];
+                    
 
-        }
-
+                    randl := randl - 1;
+                    log(randl)
+                ]
+            [] (randc != 3) -> 
+                //If not then you are unlucky :(
+                log("unlucky");
+                skip
+            ]
+            //ADD A WAIT OR DELAY???????
+        ]
+    }
 }
 
 /* test_root:
@@ -169,7 +177,7 @@ defproc simple_child(bool! p[8]; bool? p_a; bool? reset){
  Limitations:       None.
 
  Revision History:  09/15/24    George Ore  First instance of code
-                    09/16/24    George Ore  wip
+                    09/16/24    George Ore  Made it work good
 
  Pseudo Code
    all_out_off();
@@ -184,7 +192,6 @@ defproc test_root(bool? reset; bool? c[8]; bool! c_a){
     hse { 
             [reset];
             c_a-;  //Start with the acknowledge off
-            
             log("finished init inside test root");
             [~reset];
             log("reset off in test root");
@@ -209,9 +216,6 @@ defproc test_root(bool? reset; bool? c[8]; bool! c_a){
             [] c[0] & c[3] & c[5] & c[7] -> skip    //0111
             [] c[1] & c[3] & c[5] & c[7] -> skip    //1111
             ];
-            
-            // //XOR version THIS ONLY WORKS WITH INTEGERS????
-            // [(c[0] ^ c[1]) & (c[2] ^ c[3]) & (c[4] ^ c[5]) & (c[6] ^ c[7]) -> skip];
 
             //Acknowledge that foo
             c_a+;
@@ -226,27 +230,32 @@ defproc test_root(bool? reset; bool? c[8]; bool! c_a){
 }
 
 defproc test(){
+    // Create random source 
+    pint D_WIDTH = 3;
+    pint SOURCE_ID = 1;    
+    sim::rand::source_simple<D_WIDTH, SOURCE_ID, true> src;
+
     // Setup reset signal
     bool reset;
 
     // Define a root node and a test child
 	test_root tr;
-	simple_child sc;
-
+	test_child tc;
 
     // Connect wires
-    sc.reset = reset;
-    sc.p_a = tr.c_a;
- 
+    tc.R = src.O;
+    tc.reset = reset;
+    tc.p_a = tr.c_a;
+
     tr.reset = reset;
 
-    tr.c[0] = sc.p[0];
-    tr.c[1] = sc.p[1];
-    tr.c[2] = sc.p[2];
-    tr.c[3] = sc.p[3];
-    tr.c[4] = sc.p[4];
-    tr.c[5] = sc.p[5];
-    tr.c[6] = sc.p[6];
-    tr.c[7] = sc.p[7];
+    tr.c[0] = tc.p0_0;
+    tr.c[1] = tc.p0_1;
+    tr.c[2] = tc.p1_0;
+    tr.c[3] = tc.p1_1;
+    tr.c[4] = tc.p2_0;
+    tr.c[5] = tc.p2_1;
+    tr.c[6] = tc.pt_0;
+    tr.c[7] = tc.pt_1;
 
 }

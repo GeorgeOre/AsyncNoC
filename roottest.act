@@ -169,7 +169,7 @@ defproc simple_child(bool! p[8]; bool? p_a; bool? reset){
  Limitations:       None.
 
  Revision History:  09/15/24    George Ore  First instance of code
-                    09/16/24    George Ore  wip
+                    09/16/24    George Ore  Made it work good
 
  Pseudo Code
    all_out_off();
