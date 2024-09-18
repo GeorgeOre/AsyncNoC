@@ -1,0 +1,9 @@
+$comment
+Auto-generated from parentchildtest0.log.
+$end
+$timescale 1ps $end
+$scope module _test_parentchildtest0 $end
+$upscope $end
+$enddefinitions $end
+$dumpvars
+$end

@@ -1,0 +1,135 @@
+[                  10] <tr>  finished init inside test root
+[                  30] <tc2>  finished init inside test child
+[                  30] <tc1>  finished init inside test child
+[                  30] <tc0>  finished init inside test child
+src1.lx { out }
+src2.lx { out }
+src0.lx { out }
+n.b2 { a x_r c_a p0_0 p0_1 p1_0 p1_1 p2_0 p2_1 pt_0 }
+n.ch { r_r l_a p_f }
+n.b0 { a x_r c_a p0_0 p0_1 p1_0 p1_1 p2_0 p2_1 pt_0 }
+n.s { p0_0 p0_1 p1_0 p1_1 p2_0 p2_1 pt_0 pt_1 b0_ack b1_ack b2_ack T0_ack T1_ack T2_ack ch_ack }
+n.b1 { a x_r c_a p0_0 p0_1 p1_0 p1_1 p2_0 p2_1 pt_0 }
+n.c2 { r_r a_r l_a x_a a_a p_0 p_1 f g }
+n.c0 { r_r a_r l_a x_a a_a p_0 p_1 f g }
+n.c1 { r_r a_r l_a x_a a_a p_0 p_1 f g }
+src1.lx { x }
+src2.lx { x }
+src0.lx { x }
+[                  40] <tc1>  reset off in test child
+[                  40] <tc0>  reset off in test child
+[                  40] <tc1>  inside loop
+[                  40] <tc0>  inside loop
+[                  40] <tc2>  reset off in test child
+[                  40] <tr>  reset off in test root
+[                  40] <tc2>  inside loop
+[                  40] <tr>  WARNING: Boolean variable `c[0]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[2]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[4]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[6]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[1]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[2]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[4]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[6]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[0]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[3]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[4]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[6]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[1]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[3]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[4]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[6]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[0]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[2]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[5]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[6]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[1]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[2]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[5]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[6]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[0]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[3]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[5]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[6]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[1]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[3]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[5]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[6]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[0]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[2]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[4]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[7]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[1]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[2]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[4]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[7]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[0]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[3]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[4]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[7]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[1]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[3]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[4]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[7]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[0]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[2]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[5]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[7]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[1]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[2]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[5]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[7]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[0]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[3]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[5]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[7]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[1]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[3]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[5]' is X
+[                  40] <tr>  WARNING: Boolean variable `c[7]' is X
+[                  41] <tc1>  just rolled
+[                  41] <tc1>  unlucky
+[                  41] <tc1>  inside loop
+[                4794] <tc1>  just rolled
+[                4794] <tc1>  omg lucky
+[                7132] <tc0>  just rolled
+[                7132] <tc0>  unlucky
+[                7132] <tc0>  inside loop
+[                7662] <tc0>  just rolled
+[                7662] <tc0>  unlucky
+[                7662] <tc0>  inside loop
+[                8090] <tc0>  just rolled
+[                8090] <tc0>  unlucky
+[                8090] <tc0>  inside loop
+[               10507] <tc2>  just rolled
+[               10507] <tc2>  unlucky
+[               10507] <tc2>  inside loop
+[               14151] <tc0>  just rolled
+[               14151] <tc0>  unlucky
+[               14151] <tc0>  inside loop
+[               23280] <tc0>  just rolled
+[               23280] <tc0>  unlucky
+[               23280] <tc0>  inside loop
+[               54605] <tc2>  just rolled
+[               54605] <tc2>  unlucky
+[               54605] <tc2>  inside loop
+[               80377] <tc0>  just rolled
+[               80377] <tc0>  unlucky
+[               80377] <tc0>  inside loop
+[              106258] <tc2>  just rolled
+[              106258] <tc2>  unlucky
+[              106258] <tc2>  inside loop
+[              128699] <tc2>  just rolled
+[              128699] <tc2>  omg lucky
+[              129091] <tc0>  just rolled
+[              129091] <tc0>  unlucky
+[              129091] <tc0>  inside loop
+[              130945] <tc0>  just rolled
+[              130945] <tc0>  unlucky
+[              130945] <tc0>  inside loop
+[              167328] <tc0>  just rolled
+[              167328] <tc0>  unlucky
+[              167328] <tc0>  inside loop
+[              190040] <n.c2>  WARNING: unstable transition on `g+'
+[              190041] <n.c2>  WARNING: weak-unstable transition on `f+'
+n.c2 { g }

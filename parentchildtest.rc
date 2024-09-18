@@ -11,7 +11,7 @@ break-on-warn
 status X
 status 1
 status 0
-watch "tr.c[0]" "tr.c[1]" "tr.c[2]" "tr.c[3]" "tr.c[4]" "tr.c[5]" "tr.c[6]" "tr.c[7]" "tc.p_a"
+watch "tr.c[0]" "tr.c[1]" "tr.c[2]" "tr.c[3]" "tr.c[4]" "tr.c[5]" "tr.c[6]" "tr.c[7]" "tc0.p_a" "tc1.p_a" "tc2.p_a"
 advance 1000000000
 
 status X
