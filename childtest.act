@@ -1,12 +1,12 @@
 /*;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                              ;
-;                                roottest.act   	                           ;
+;                               childtest.act   	                           ;
 ;                                 George Ore                                   ;
 ;                                                                              ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
- Description: This file is to test the capabilies of the root testing module.
- Goal: Make sure that the test_root module works as intended.
+ Description: This file is to test the capabilies of the child testing module.
+ Goal: Make sure that the test_child module works as intended.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                             Required Namespace Imports                        */
@@ -18,7 +18,7 @@ import sim;     // Simulation library namespace
     testroot            |   Recieves all manner of data on a bus
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
  Revision History:  09/16/24 George Ore Created file
-                    09/16/24 George Ore Validated and tested working
+                    09/16/24 George Ore 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;*/
 
 /*******************************************************************************
@@ -29,12 +29,9 @@ import sim;     // Simulation library namespace
 
  Description: Simulates a simple child that sends known data through a bus.
 
- Operation: The child begins by waiting for the reset state. When reached, it
-        resets all of its outputs low and waits until the ack input is low. 
-        Next it waits until the reset state is off to begin sending known
-        permutations of data through its outputs. The word permutation order
-        is set but each individual bit is set in parallel. Other than that, 
-        it follows standard 4-phase handshaking all throughout the program.
+ Operation: The child begins by waiting until the ack input is low. Next it
+        sends known permutations of data through its bus in sequential order. 
+        It follows standard handshaking all throughout.
 
  Features:
     - 4 bit (8 line) output but
@@ -52,7 +49,7 @@ import sim;     // Simulation library namespace
  Limitations:       None.
 
  Revision History:  09/16/24    George Ore  Created module
-                    09/16/24    George Ore  Improved testing capabilities
+                    09/16/24    George Ore  wip
 
  Pseudo Code
    wait_ack_off();
@@ -68,74 +65,77 @@ defproc simple_child(bool! p[8]; bool? p_a; bool? reset){
             [reset];    //Wait until it is reset time
             [~p_a];     //Wait until ack is off
             p[0]-; p[1]-; p[2]-; p[3]-; p[4]-; p[5]-; p[6]-; p[7]-; //Turn all off
+            
+
             log("finished init inside simple child");            
+
             [~reset];
             log("reset off in test root");
 
             //Send various permutations of data
-            p[0]+, p[2]+, p[4]+, p[6]+;    //0000
+            p[0]+; p[2]+; p[4]+; p[6]+;    //0000
             [p_a];
-            p[0]-, p[2]-, p[4]-, p[6]-;
+            p[0]-; p[2]-; p[4]-; p[6]-;
             [~p_a];
-            p[1]+, p[2]+, p[4]+, p[6]+;    //1000
+            p[1]+; p[2]+; p[4]+; p[6]+;    //1000
             [p_a];
-            p[1]-, p[2]-, p[4]-, p[6]-;
+            p[1]-; p[2]-; p[4]-; p[6]-;
             [~p_a];
-            p[0]+, p[3]+, p[4]+, p[6]+;    //0100
+            p[0]+; p[3]+; p[4]+; p[6]+;    //0100
             [p_a];
-            p[0]-, p[3]-, p[4]-, p[6]-; 
+            p[0]-; p[3]-; p[4]-; p[6]-; 
             [~p_a];
-            p[1]+, p[3]+, p[4]+, p[6]+;    //1100
+            p[1]+; p[3]+; p[4]+; p[6]+;    //1100
             [p_a];
-            p[1]-, p[3]-, p[4]-, p[6]-; 
+            p[1]-; p[3]-; p[4]-; p[6]-; 
             [~p_a];
-            p[0]+, p[2]+, p[5]+, p[6]+;    //0010
+            p[0]+; p[2]+; p[5]+; p[6]+;    //0010
             [p_a];
-            p[0]-, p[2]-, p[5]-, p[6]-; 
+            p[0]-; p[2]-; p[5]-; p[6]-; 
             [~p_a];
-            p[1]+, p[2]+, p[5]+, p[6]+;    //1010
+            p[1]+; p[2]+; p[5]+; p[6]+;    //1010
             [p_a];
-            p[1]-, p[2]-, p[5]-, p[6]-; 
+            p[1]-; p[2]-; p[5]-; p[6]-; 
             [~p_a];
-            p[0]+, p[3]+, p[5]+, p[6]+;    //0110
+            p[0]+; p[3]+; p[5]+; p[6]+;    //0110
             [p_a];
-            p[0]-, p[3]-, p[5]-, p[6]-; 
+            p[0]-; p[3]-; p[5]-; p[6]-; 
             [~p_a];
-            p[1]+, p[3]+, p[5]+, p[6]+;    //1110
+            p[1]+; p[3]+; p[5]+; p[6]+;    //1110
             [p_a];
-            p[1]-, p[3]-, p[5]-, p[6]-; 
+            p[1]-; p[3]-; p[5]-; p[6]-; 
             [~p_a];
-            p[0]+, p[2]+, p[4]+, p[7]+;    //0001
+            p[0]+; p[2]+; p[4]+; p[7]+;    //0001
             [p_a];
-            p[0]-, p[2]-, p[4]-, p[7]-; 
+            p[0]-; p[2]-; p[4]-; p[7]-; 
             [~p_a];
-            p[1]+, p[2]+, p[4]+, p[7]+;    //1001
+            p[1]+; p[2]+; p[4]+; p[7]+;    //1001
             [p_a];
-            p[1]-, p[2]-, p[4]-, p[7]-; 
+            p[1]-; p[2]-; p[4]-; p[7]-; 
             [~p_a];
-            p[0]+, p[3]+, p[4]+, p[7]+;    //0101
+            p[0]+; p[3]+; p[4]+; p[7]+;    //0101
             [p_a];
-            p[0]-, p[3]-, p[4]-, p[7]-; 
+            p[0]-; p[3]-; p[4]-; p[7]-; 
             [~p_a];
-            p[1]+, p[3]+, p[4]+, p[7]+;    //1101
+            p[1]+; p[3]+; p[4]+; p[7]+;    //1101
             [p_a];
-            p[1]-, p[3]-, p[4]-, p[7]-; 
+            p[1]-; p[3]-; p[4]-; p[7]-; 
             [~p_a];
-            p[0]+, p[2]+, p[5]+, p[7]+;    //0011
+            p[0]+; p[2]+; p[5]+; p[7]+;    //0011
             [p_a];
-            p[0]-, p[2]-, p[5]-, p[7]-; 
+            p[0]-; p[2]-; p[5]-; p[7]-; 
             [~p_a];
-            p[1]+, p[2]+, p[5]+, p[7]+;    //1011
+            p[1]+; p[2]+; p[5]+; p[7]+;    //1011
             [p_a];
-            p[1]-, p[2]-, p[5]-, p[7]-; 
+            p[1]-; p[2]-; p[5]-; p[7]-; 
             [~p_a];
-            p[0]+, p[3]+, p[5]+, p[7]+;    //0111
+            p[0]+; p[3]+; p[5]+; p[7]+;    //0111
             [p_a];
-            p[0]-, p[3]-, p[5]-, p[7]-; 
+            p[0]-; p[3]-; p[5]-; p[7]-; 
             [~p_a];
-            p[1]+, p[3]+, p[5]+, p[7]+;    //1111
+            p[1]+; p[3]+; p[5]+; p[7]+;    //1111
             [p_a];
-            p[1]-, p[3]-, p[5]-, p[7]-; 
+            p[1]-; p[3]-; p[5]-; p[7]-; 
             [~p_a]
 
         }
@@ -184,6 +184,7 @@ defproc test_root(bool? reset; bool? c[8]; bool! c_a){
     hse { 
             [reset];
             c_a-;  //Start with the acknowledge off
+            
             log("finished init inside test root");
             [~reset];
             log("reset off in test root");
