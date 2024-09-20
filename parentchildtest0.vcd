@@ -3,7 +3,11 @@ Auto-generated from parentchildtest0.log.
 $end
 $timescale 1ps $end
 $scope module _test_parentchildtest0 $end
+$var wire 1 %tc1_p_a tc1.p_a $end
 $upscope $end
 $enddefinitions $end
 $dumpvars
+0%tc1_p_a
 $end
+#223581
+1%tc1_p_a

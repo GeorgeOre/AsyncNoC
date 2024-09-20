@@ -124,12 +124,30 @@ src0.lx { x }
 [              129091] <tc0>  just rolled
 [              129091] <tc0>  unlucky
 [              129091] <tc0>  inside loop
-[              130945] <tc0>  just rolled
-[              130945] <tc0>  unlucky
-[              130945] <tc0>  inside loop
-[              167328] <tc0>  just rolled
-[              167328] <tc0>  unlucky
-[              167328] <tc0>  inside loop
-[              190040] <n.c2>  WARNING: unstable transition on `g+'
-[              190041] <n.c2>  WARNING: weak-unstable transition on `f+'
-n.c2 { g }
+[              131447] <tc0>  just rolled
+[              131447] <tc0>  unlucky
+[              131447] <tc0>  inside loop
+[              167793] <tc0>  just rolled
+[              167793] <tc0>  unlucky
+[              167793] <tc0>  inside loop
+[              168533] <tc0>  just rolled
+[              168533] <tc0>  unlucky
+[              168533] <tc0>  inside loop
+[              216045] <tc0>  just rolled
+[              216045] <tc0>  unlucky
+[              216045] <tc0>  inside loop
+[              223581] <n.c1>  tc1.p_a := 1
+[              230161] <tc0>  just rolled
+[              230161] <tc0>  unlucky
+[              230161] <tc0>  inside loop
+[              232350] <tc0>  just rolled
+[              232350] <tc0>  unlucky
+[              232350] <tc0>  inside loop
+[              235215] <tc0>  just rolled
+[              235215] <tc0>  unlucky
+[              235215] <tc0>  inside loop
+[              254211] <tc0>  just rolled
+[              254211] <tc0>  unlucky
+[              254211] <tc0>  inside loop
+[              254615] <tc0>  just rolled
+[              254615] <tc0>  omg lucky
