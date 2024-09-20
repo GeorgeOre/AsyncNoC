@@ -12,7 +12,7 @@ status X
 status 1
 status 0
 
-watch "tc.l_r" "c.l_r" "tc.r_a" "c.r_a" "c.x_r" "c.p_a" "tc.x_a" "tc.p_0" "tc.p_1"
+watch "s.b0_0_0" "s.b0_0_1" "s.b0_1_0" "s.b0_1_1" "s.b0_2_0" "s.b0_2_1" "s.b0_t_0" "s.b1_0_0" "s.b1_0_1" "s.b1_1_0" "s.b1_1_1" "s.b1_2_0" "s.b1_2_1" "s.b1_t_0" "s.b2_0_0" "s.b2_0_1" "s.b2_1_0" "s.b2_1_1" "s.b2_2_0" "s.b2_2_1" "s.b2_t_0" "s.T0_0" "s.T0_1" "s.T1_0" "s.T1_1" "s.T2_0" "s.T2_1" "s.ch_1" "s.ack" "tr.c[0]" "tr.c[1]" "tr.c[2]" "tr.c[3]" "tr.c[4]" "tr.c[5]" "tr.c[6]" "tr.c[7]" "tc0.q_r" "tc1.q_r" "tc2.q_r" "tc3.q_r" "tc0.p_a" "tc1.p_a" "tc2.p_a" "tc3.p_a0" "tc3.p_a1" "tc3.p_a2" "tc3.p_a3" "c.q_a[0]" "c.q_a[1]" "c.q_a[2]" "c.q_a[3]"
 
 advance 1000000000
 status X

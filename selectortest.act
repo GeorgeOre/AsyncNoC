@@ -141,7 +141,7 @@ defproc selector(bool? reset;             //For reseting
 Testing Modules
 */
 
-/* test_buffer_child:
+/* child_control:
 
  Description: Simulates a simple child that sends known data through a bus.
 
@@ -178,49 +178,256 @@ Testing Modules
        data_off(permutation)
        wait_ack_off()
 */
-defproc test_child(bool! p[7]; bool? p_a; bool? reset){
+defproc child_control(bool! q_r[4]; bool? q_a[4]; bool? reset){
     
     hse { 
-            [reset];    //Wait until it is reset time
-            [~p_a];     //Wait until ack is off
-            p[0]-; p[1]-; p[2]-; p[3]-; p[4]-; p[5]-; p[6]-; //Turn all off
+            [reset -> q_r[0]-; q_r[1]-; q_r[2]-; q_r[3]-];    //Wait until it is reset time
+            
             log("finished init inside simple child");            
             [~reset];
             log("reset off in test root");
 
+            //Send control signals in order
+            *[
+                q_r[0]+;
+                [q_a[0]];
+
+                q_r[1]+;
+                [q_a[1]];
+
+                q_r[2]+;
+                [q_a[2]];
+
+                q_r[3]+;
+                [q_a[3]];
+
+                q_r[0]-;
+                [~q_a[0]];
+
+                q_r[1]-;
+                [~q_a[1]];
+
+                q_r[2]-;
+                [~q_a[2]];
+
+                q_r[3]-;
+                [~q_a[3]]
+            ]
+        }
+
+}
+
+/* test_child:
+
+ Description: Simulates a simple child that sends known data through a bus.
+
+ Operation: The child begins by waiting for the reset state. When reached, it
+        resets all of its outputs low and waits until the ack input is low. 
+        Next it waits until the reset state is off to begin sending known
+        permutations of data through its outputs. The word permutation order
+        is set but each individual bit is set in parallel. Other than that, 
+        it follows standard 4-phase handshaking all throughout the program.
+
+ Features:
+    - 4 bit (8 line) output but
+    - All 16 permutations of data output
+    - Waits for acks from receiver
+
+ Input Ports:   Name    |   Purpose
+                p_a     |   Parent acknowledge
+
+ Output Ports:  Name    |   Purpose
+                p[8]    |   8 bit bus containing child data
+
+ Error Handling:    None.
+ Known Bugs:        None.
+ Limitations:       None.
+
+ Revision History:  09/16/24    George Ore  Created module
+                    09/16/24    George Ore  Improved testing capabilities
+
+ Pseudo Code
+   wait_ack_off();
+   for permutation in {0,1}^4
+       data_on(permutation)
+       wait_ack_on()
+       data_off(permutation)
+       wait_ack_off()
+*/
+defproc test_child(bool! p[7]; bool? p_a; bool? reset;
+                    bool? q_r; bool! q_a){
+    
+    hse { 
+            [reset];    //Wait until it is reset time
+            p[0]-; p[1]-; p[2]-; p[3]-; p[4]-; p[5]-; p[6]-; q_a-;//Turn all off
+            log("finished init inside simple child");
+            [~reset];
+            log("reset off in test root");
+
             //Send various permutations of data
-            p[0]+, p[2]+, p[4]+, p[6]+;    //0000
-            [p_a];
-            p[0]-, p[2]-, p[4]-, p[6]-;
-            [~p_a];
-            p[1]+, p[2]+, p[4]+, p[6]+;    //1000
-            [p_a];
-            p[1]-, p[2]-, p[4]-, p[6]-;
-            [~p_a];
-            p[0]+, p[3]+, p[4]+, p[6]+;    //0100
-            [p_a];
-            p[0]-, p[3]-, p[4]-, p[6]-; 
-            [~p_a];
-            p[1]+, p[3]+, p[4]+, p[6]+;    //1100
-            [p_a];
-            p[1]-, p[3]-, p[4]-, p[6]-; 
-            [~p_a];
-            p[0]+, p[2]+, p[5]+, p[6]+;    //0010
-            [p_a];
-            p[0]-, p[2]-, p[5]-, p[6]-; 
-            [~p_a];
-            p[1]+, p[2]+, p[5]+, p[6]+;    //1010
-            [p_a];
-            p[1]-, p[2]-, p[5]-, p[6]-; 
-            [~p_a];
-            p[0]+, p[3]+, p[5]+, p[6]+;    //0110
-            [p_a];
-            p[0]-, p[3]-, p[5]-, p[6]-; 
-            [~p_a];
-            p[1]+, p[3]+, p[5]+, p[6]+;    //1110
-            [p_a];
-            p[1]-, p[3]-, p[5]-, p[6]-; 
-            [~p_a];
+                [q_r];
+                p[0]+, p[2]+, p[4]+, p[6]+;    //0000
+                [p_a];
+                p[0]-, p[2]-, p[4]-, p[6]-;
+                [~p_a];
+                q_a+;
+
+                [~q_r];
+                p[1]+, p[2]+, p[4]+, p[6]+;    //1000
+                [p_a];
+                p[1]-, p[2]-, p[4]-, p[6]-;
+                [~p_a];
+                q_a-;
+
+                [q_r];
+                p[0]+, p[3]+, p[4]+, p[6]+;    //0100
+                [p_a];
+                p[0]-, p[3]-, p[4]-, p[6]-; 
+                [~p_a];
+                q_a+;
+
+                [~q_r];
+                p[1]+, p[3]+, p[4]+, p[6]+;    //1100
+                [p_a];
+                p[1]-, p[3]-, p[4]-, p[6]-; 
+                [~p_a];
+                q_a-;
+
+                [q_r];
+                p[0]+, p[2]+, p[5]+, p[6]+;    //0010
+                [p_a];
+                p[0]-, p[2]-, p[5]-, p[6]-; 
+                [~p_a];
+                q_a+;
+
+                [~q_r];
+                p[1]+, p[2]+, p[5]+, p[6]+;    //1010
+                [p_a];
+                p[1]-, p[2]-, p[5]-, p[6]-; 
+                [~p_a];
+                q_a-;
+
+                [q_r];
+                p[0]+, p[3]+, p[5]+, p[6]+;    //0110
+                [p_a];
+                p[0]-, p[3]-, p[5]-, p[6]-; 
+                [~p_a];
+                q_a+;
+
+                [~q_r];
+                p[1]+, p[3]+, p[5]+, p[6]+;    //1110
+                [p_a];
+                p[1]-, p[3]-, p[5]-, p[6]-; 
+                [~p_a];
+                q_a-
+
+        }
+
+}
+
+/* test_child2:
+
+ Description: Simulates a simple child that sends known data through a bus.
+
+ Operation: The child begins by waiting for the reset state. When reached, it
+        resets all of its outputs low and waits until the ack input is low. 
+        Next it waits until the reset state is off to begin sending known
+        permutations of data through its outputs. The word permutation order
+        is set but each individual bit is set in parallel. Other than that, 
+        it follows standard 4-phase handshaking all throughout the program.
+
+ Features:
+    - 4 bit (8 line) output but
+    - All 16 permutations of data output
+    - Waits for acks from receiver
+
+ Input Ports:   Name    |   Purpose
+                p_a     |   Parent acknowledge
+
+ Output Ports:  Name    |   Purpose
+                p[8]    |   8 bit bus containing child data
+
+ Error Handling:    None.
+ Known Bugs:        None.
+ Limitations:       None.
+
+ Revision History:  09/16/24    George Ore  Created module
+                    09/16/24    George Ore  Improved testing capabilities
+
+ Pseudo Code
+   wait_ack_off();
+   for permutation in {0,1}^4
+       data_on(permutation)
+       wait_ack_on()
+       data_off(permutation)
+       wait_ack_off()
+*/
+defproc test_child2(bool! p[7]; bool? p_a0; bool? p_a1; bool? p_a2; bool? p_a3; bool? reset;
+                    bool? q_r; bool! q_a){
+    
+    hse { 
+            [reset];    //Wait until it is reset time
+            p[0]-; p[1]-; p[2]-; p[3]-; p[4]-; p[5]-; p[6]-; q_a-;//Turn all off
+            log("finished init inside simple child");
+            [~reset];
+            log("reset off in test root");
+
+            //Send various permutations of data
+                [q_r];
+                p[0]+, p[2]+, p[4]+, p[6]+;    //0000
+                [p_a0 & p_a1 & p_a2 & p_a3];
+                p[0]-, p[2]-, p[4]-, p[6]-;
+                [~p_a0 & ~p_a1 & ~p_a2 & ~p_a3];
+                q_a+;
+
+                [~q_r];
+                p[1]+, p[2]+, p[4]+, p[6]+;    //1000
+                [p_a0 & p_a1 & p_a2 & p_a3];
+                p[1]-, p[2]-, p[4]-, p[6]-;
+                [~p_a0 & ~p_a1 & ~p_a2 & ~p_a3];
+                q_a-;
+
+                [q_r];
+                p[0]+, p[3]+, p[4]+, p[6]+;    //0100
+                [p_a0 & p_a1 & p_a2 & p_a3];
+                p[0]-, p[3]-, p[4]-, p[6]-; 
+                [~p_a0 & ~p_a1 & ~p_a2 & ~p_a3];
+                q_a+;
+
+                [~q_r];
+                p[1]+, p[3]+, p[4]+, p[6]+;    //1100
+                [p_a0 & p_a1 & p_a2 & p_a3];
+                p[1]-, p[3]-, p[4]-, p[6]-; 
+                [~p_a0 & ~p_a1 & ~p_a2 & ~p_a3];
+                q_a-;
+
+                [q_r];
+                p[0]+, p[2]+, p[5]+, p[6]+;    //0010
+                [p_a0 & p_a1 & p_a2 & p_a3];
+                p[0]-, p[2]-, p[5]-, p[6]-; 
+                [~p_a0 & ~p_a1 & ~p_a2 & ~p_a3];
+                q_a+;
+
+                [~q_r];
+                p[1]+, p[2]+, p[5]+, p[6]+;    //1010
+                [p_a0 & p_a1 & p_a2 & p_a3];
+                p[1]-, p[2]-, p[5]-, p[6]-; 
+                [~p_a0 & ~p_a1 & ~p_a2 & ~p_a3];
+                q_a-;
+
+                [q_r];
+                p[0]+, p[3]+, p[5]+, p[6]+;    //0110
+                [p_a0 & p_a1 & p_a2 & p_a3];
+                p[0]-, p[3]-, p[5]-, p[6]-; 
+                [~p_a0 & ~p_a1 & ~p_a2 & ~p_a3];
+                q_a+;
+
+                [~q_r];
+                p[1]+, p[3]+, p[5]+, p[6]+;    //1110
+                [p_a0 & p_a1 & p_a2 & p_a3];
+                p[1]-, p[3]-, p[5]-, p[6]-; 
+                [~p_a0 & ~p_a1 & ~p_a2 & ~p_a3];
+                q_a-
 
         }
 
@@ -458,53 +665,55 @@ defproc test(){
 
     // Define the test modules
 	child_control c;
-	test_child tc0, tc1, tc2, tc4;
-	test_addressing_child tac;
+	test_child tc0, tc1, tc2;
+    test_child2 tc3;
 	test_root tr;
 
     //Connect all reset signals
     s.reset = reset;
+    c.reset = reset;
     tc0.reset = reset;
     tc1.reset = reset;
     tc2.reset = reset;
+    tc3.reset = reset;
     tr.reset = reset;
 
     // Connect selector input wires
-    s.b0_0_0 = tbc0.p[0];
-    s.b0_0_1 = tbc0.p[1];
-    s.b0_1_0 = tbc0.p[2];
-    s.b0_1_1 = tbc0.p[3];
-    s.b0_2_0 = tbc0.p[4];
-    s.b0_2_1 = tbc0.p[5];
-    s.b0_t_0 = tbc0.p[6];
+    s.b0_0_0 = tc0.p[0];
+    s.b0_0_1 = tc0.p[1];
+    s.b0_1_0 = tc0.p[2];
+    s.b0_1_1 = tc0.p[3];
+    s.b0_2_0 = tc0.p[4];
+    s.b0_2_1 = tc0.p[5];
+    s.b0_t_0 = tc0.p[6];
 
-    s.b1_0_0 = tbc1.p[0];
-    s.b1_0_1 = tbc1.p[1];
-    s.b1_1_0 = tbc1.p[2];
-    s.b1_1_1 = tbc1.p[3];
-    s.b1_2_0 = tbc1.p[4];
-    s.b1_2_1 = tbc1.p[5];
-    s.b1_t_0 = tbc1.p[6];
+    s.b1_0_0 = tc1.p[0];
+    s.b1_0_1 = tc1.p[1];
+    s.b1_1_0 = tc1.p[2];
+    s.b1_1_1 = tc1.p[3];
+    s.b1_2_0 = tc1.p[4];
+    s.b1_2_1 = tc1.p[5];
+    s.b1_t_0 = tc1.p[6];
 
-    s.b2_0_0 = tbc2.p[0];
-    s.b2_0_1 = tbc2.p[1];
-    s.b2_1_0 = tbc2.p[2];
-    s.b2_1_1 = tbc2.p[3];
-    s.b2_2_0 = tbc2.p[4];
-    s.b2_2_1 = tbc2.p[5];
-    s.b2_t_0 = tbc2.p[6];
+    s.b2_0_0 = tc2.p[0];
+    s.b2_0_1 = tc2.p[1];
+    s.b2_1_0 = tc2.p[2];
+    s.b2_1_1 = tc2.p[3];
+    s.b2_2_0 = tc2.p[4];
+    s.b2_2_1 = tc2.p[5];
+    s.b2_t_0 = tc2.p[6];
 
-    s.T0_0 = tac.p[0];
-    s.T0_1 = tac.p[1];
-    s.T1_0 = tac.p[2];
-    s.T1_1 = tac.p[3];
-    s.T2_0 = tac.p[4];
-    s.T2_1 = tac.p[5];
-    s.ch_1 = tac.p[6];    //CHECK IF THIS IS VALID OR OK
+    s.T0_0 = tc3.p[0];
+    s.T0_1 = tc3.p[1];
+    s.T1_0 = tc3.p[2];
+    s.T1_1 = tc3.p[3];
+    s.T2_0 = tc3.p[4];
+    s.T2_1 = tc3.p[5];
+    s.ch_1 = tc3.p[6];
 
     s.ack = tr.c_a;
 
-    // Connect test children and root input wires
+    // Connect test root input wires
     tr.c[0] = s.p0_0;
     tr.c[1] = s.p0_1;
     tr.c[2] = s.p1_0;
@@ -514,12 +723,26 @@ defproc test(){
     tr.c[6] = s.pt_0;
     tr.c[7] = s.pt_1;
 
+    // Connect test children input wires
+    tc0.q_r = c.q_r[0];
+    tc1.q_r = c.q_r[1];
+    tc2.q_r = c.q_r[2];
+    tc3.q_r = c.q_r[3];
 
+    tc0.p_a = s.b0_ack;
+    tc1.p_a = s.b1_ack;
+    tc2.p_a = s.b2_ack;
+    tc3.p_a0 = s.T0_ack;
+    tc3.p_a1 = s.T1_ack;
+    tc3.p_a2 = s.T2_ack;
+    tc3.p_a3 = s.ch_ack;
 
-                bool! b0_ack; //Acks back to the buffers, tags, and ctl-h
-                bool! b1_ack; bool! b2_ack;
-                bool! T0_ack; bool! T1_ack;
-                bool! T2_ack; bool! ch_ack
+    // Connect control input wires
+    c.q_a[0] = tc0.q_a;
+    c.q_a[1] = tc1.q_a;
+    c.q_a[2] = tc2.q_a;
+    c.q_a[3] = tc3.q_a;
+
 
 
 }
