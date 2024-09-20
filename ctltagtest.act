@@ -65,7 +65,7 @@ defproc ctl_tag(bool? reset;        //For reseting
         reset | (f & ~m) -> x_a-
 
         ~reset & (f & ~m & ~x_a) | g -> a_a+
-        reset | (~p_a & ~f & (~g | ~p_0)) -> a_a-
+        reset | (~p_a & ~f & (~g & ~p_0)) -> a_a-
 
         ~reset & (g & a_a & ~n) -> p_0+
         reset | (~g) -> p_0-

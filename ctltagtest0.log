@@ -26,4 +26,20 @@ c { r_r a_r l_a x_a a_a p_0 p_1 f g m n }
 [              305337] <tc>  c.l_r := 0
 [              316228] <c>  tc.x_a := 1
 [              316229] <tc>  c.x_r := 0
-[              336717] <c>  WARNING: interference on `a_a'
+[              337488] <c>  tc.l_r := 0
+[              387383] <c>  tc.x_a := 0
+[              387934] <tc>  c.r_a := 0
+[              389005] <c>  tc.r_a := 0
+[              391040] <c>  tc.p_1 := 1
+[              392022] <tc>  c.p_a := 1
+[              392022] <c>  WARNING: interference on `g'
+[              396053] <c>  tc.p_1 := 0
+[              400056] <tc>  c.p_a := 0
+[              400056] <c>  WARNING: weak-interference on `a_a'
+[              421640] <tc>  c.l_r := 1
+[              421640] <c>  WARNING: weak-interference on `r_r'
+[              421641] <c>  tc.l_r := X
+[              421641] <tc>  WARNING: Boolean variable `l_r' is X
+[              444429] <c>  WARNING: weak-interference on `p_0'
+[              444429] <c>  WARNING: unstable transition on `g+'
+c { r_r a_a g }
