@@ -54,43 +54,43 @@ defproc buffer(bool? reset;             //For reseting
 
         //a
         ~reset & ct_1 & p_a -> a+ 
-        reset | ~x_a -> a-
+        reset | (~x_a) -> a-
 
         //x_r
         ~reset & ct_0 -> x_r+
-        reset | ~p_a & a -> x_r-
+        reset | (~p_a & a) -> x_r-
 
         //c_a
         ~reset & p_a -> c_a+ 
-        reset | ~p_a -> c_a-
+        reset | (~p_a) -> c_a-
 
         //p0_0
         ~reset & x_a & c0_0 -> p0_0+ 
-        reset | ~c0_0 -> p0_0-
+        reset | (~c0_0) -> p0_0-
 
         //p0_1
         ~reset & x_a & c0_1 -> p0_1+ 
-        reset | ~c0_1 -> p0_1-
+        reset | (~c0_1) -> p0_1-
 
         //p1_0
         ~reset & x_a & c1_0 -> p1_0+ 
-        reset | ~c1_0 -> p1_0-
+        reset | (~c1_0) -> p1_0-
 
         //p1_1
         ~reset & x_a & c1_1 -> p1_1+ 
-        reset | ~c1_1 -> p1_1-
+        reset | (~c1_1) -> p1_1-
 
         //p2_0
         ~reset & x_a & c2_0 -> p2_0+ 
-        reset | ~c2_0 -> p2_0-
+        reset | (~c2_0) -> p2_0-
 
         //p2_1
         ~reset & x_a & c2_1 -> p2_1+ 
-        reset | ~c2_1 -> p2_1-
+        reset | (~c2_1) -> p2_1-
 
         //pt_0
         ~reset & x_a & (ct_0 | ct_1) -> pt_0+ 
-        reset | ~ct_0 & ~ct_1 -> pt_0-
+        reset | (~ct_0 & ~ct_1) -> pt_0-
 
     }
 }

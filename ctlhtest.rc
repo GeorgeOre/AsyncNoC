@@ -1,0 +1,18 @@
+set reset 1
+mode reset
+cycle
+
+mode run
+cycle
+
+set reset 0
+random
+break-on-warn
+status X
+status 1
+status 0
+
+watch "tch.l_r" "ch.l_r" "ch.r_a" "tch.r_a" "ch.p_0" "ch.p_1" "tch.p_t"
+
+advance 1000000000
+status X

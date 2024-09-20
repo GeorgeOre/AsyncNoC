@@ -1,0 +1,174 @@
+/*;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                                                                              ;
+;                                ctlhtest.act  	                               ;
+;                                 George Ore                                   ;
+;                                                                              ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+ Description: This file contains modules used to test the capabilies of a relay
+               NoC. This is a test of that test.
+ Goal: Fine tune the testing environment for the NoC.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                            Required Namespace Imports                        */
+import sim;     // Simulation library namespace
+/*;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                            Table of Contents
+        Process Name    |       Purpose
+    ctl_h           |   Simulates a child that actively sends data on a bus
+    test_ctl_h           |   Simulates a child that actively sends data on a bus
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ Revision History:  09/19/24 George Ore First instance of code
+                    09/19/24 George Ore Formated file
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;*/
+
+/*******************************************************************************
+;*                              PROCESSES                                      *
+;******************************************************************************/
+
+/*
+Custom Modules
+*/
+
+/*  ctl_h
+
+    Contains the PRS for the special control block CTL_H
+
+    reset - signal to reset this thing??
+
+
+*/
+defproc ctl_h(bool? reset;        //For reseting
+                bool? l_r; bool? r_a; //bool? p_a; //Inputs 
+		        bool? p_0; bool? p_1;
+                bool! l_a; bool! r_r; bool! p_t //Outputs
+                ){
+
+     prs {
+
+        ~reset & (l_a) & (~r_a) -> r_r+ 
+        reset | r_a -> r_r-
+
+        ~reset & (l_r) -> l_a+
+        reset | (~l_r) -> l_a-
+
+        ~reset & ( p_0 | p_1 ) -> p_t+
+        reset | ( ~p_0 & ~p_1 ) -> p_t-
+    }
+}
+
+/*
+Testing Modules
+*/
+
+/* test_ctl_h:
+
+ Description: Emulates the final output bus for packets to be sent & processed.
+        This is a root is designed to take in any combination of data 
+        permutations from the input bus. In testing, these ports can be watched.
+
+ Operation: The root begins by setting its output low. Then it waits for one
+        of the deterministically defined input permutations. Once all are 
+        received, it sends an acknowledge and waits until all data is off
+        to deactivate the acknowledge.
+
+ Features:
+    - 4 bit (8 line) input processing
+    - Can receive any permutation of data input
+    - Sends acks to the sender
+
+ Input Ports:   Name    |   Purpose
+                c[8]    |   8 bit bus containing child data   
+
+ Output Ports:  Name    |   Purpose
+                c_a     |   Child acknowledge
+
+ Error Handling:    None.
+ Known Bugs:        None.
+ Limitations:       None.
+
+ Revision History:  09/15/24    George Ore  First instance of code
+                    09/16/24    George Ore  Made it work good
+
+ Pseudo Code
+   all_out_off();
+   while(1)
+       wait_for_child_data_on()
+       ack_on()
+       wait_for_child_data_off()
+       ack_off()
+*/
+defproc test_ctl_h(bool? reset; 
+                    bool? r_a; bool? l_r; bool? p_t;
+                    bool! r_r; bool! l_a; //bool! p_a;
+                    bool! T0_0; bool! T0_1){
+
+    hse { 
+            [reset -> r_r-; l_a-; /*p_a-;*/ T0_0-; T0_1-];
+            log("finished init inside test ctl h control");
+            [~reset];
+            log("reset off in test ctl h control");
+
+            *[ /*Start off by waiting for one of the conditions to come true*/
+
+            //R
+                r_r+; [r_a];
+            //L
+                [l_r]; l_a+;
+            //L+
+                [~l_r];
+            //R
+                r_r-; [~r_a];
+            //L-
+                l_a-;
+            //T0_0    
+                T0_0+; [p_t]; T0_0-; [~p_t];
+
+            //R
+                r_r+; [r_a];
+            //L
+                [l_r]; l_a+;
+            //L+
+                [~l_r];
+            //R
+                r_r-; [~r_a];
+            //L-
+                l_a-;
+            //T0_1
+                T0_1+; [p_t]; T0_1-; [~p_t]
+
+            ]
+        }
+}
+
+defproc test(){
+    // Setup reset signal
+    bool reset;
+
+    // Define the ctl-h process
+    ctl_h ch;
+
+    // Define the test module
+	test_ctl_h tch;
+
+    //Connect all reset signals
+    ch.reset = reset;
+    tch.reset = reset;
+
+    // Connect ctl_h and ctl_tag input wires
+    // ch.p_a = tch.p_a;
+
+    tch.l_r = ch.r_r;
+    ch.l_r = tch.r_r;
+    
+    ch.r_a = tch.l_a;
+    tch.r_a = ch.l_a;
+    
+	ch.p_0 = tch.T0_0; 
+    ch.p_1 = tch.T0_1;
+
+    tch.p_t = ch.p_t;
+
+
+}
+
