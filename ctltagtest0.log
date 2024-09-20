@@ -1,0 +1,29 @@
+[                   0] <c>  WARNING: weak-interference on `a_a'
+[                  40] <tc>  finished init inside test ctl tag control
+c { r_r a_r l_a x_a a_a p_0 p_1 f g m n }
+[                  40] <tc>  reset off in test ctl tag control
+[                  41] <tc>  c.x_r := 1
+[                7133] <c>  tc.l_r := 1
+[                7135] <tc>  c.r_a := 1
+[               11888] <tc>  c.l_r := 1
+[               13025] <c>  tc.r_a := 1
+[               14865] <c>  tc.x_a := 1
+[               78391] <tc>  c.l_r := 0
+[               78406] <tc>  c.x_r := 0
+[               78910] <c>  tc.x_a := 0
+[               79365] <c>  tc.l_r := 0
+[               79385] <tc>  c.r_a := 0
+[               85446] <c>  tc.r_a := 0
+[               85509] <c>  tc.p_1 := 1
+[              129607] <tc>  c.p_a := 1
+[              143335] <c>  tc.p_1 := 0
+[              152464] <tc>  c.p_a := 0
+[              195712] <tc>  c.x_r := 1
+[              232643] <c>  tc.l_r := 1
+[              247365] <tc>  c.l_r := 1
+[              277145] <tc>  c.r_a := 1
+[              290994] <c>  tc.r_a := 1
+[              305337] <tc>  c.l_r := 0
+[              316228] <c>  tc.x_a := 1
+[              316229] <tc>  c.x_r := 0
+[              336717] <c>  WARNING: interference on `a_a'

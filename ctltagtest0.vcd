@@ -1,0 +1,73 @@
+$comment
+Auto-generated from ctltagtest0.log.
+$end
+$timescale 1ps $end
+$scope module _test_ctltagtest0 $end
+$var wire 1 %c_x_r c.x_r $end
+$var wire 1 %tc_l_r tc.l_r $end
+$var wire 1 %c_r_a c.r_a $end
+$var wire 1 %c_l_r c.l_r $end
+$var wire 1 %tc_r_a tc.r_a $end
+$var wire 1 %tc_x_a tc.x_a $end
+$var wire 1 %tc_p_1 tc.p_1 $end
+$var wire 1 %c_p_a c.p_a $end
+$upscope $end
+$enddefinitions $end
+$dumpvars
+0%c_x_r
+0%tc_l_r
+0%c_r_a
+0%c_l_r
+0%tc_r_a
+0%tc_x_a
+0%tc_p_1
+0%c_p_a
+$end
+#41
+1%c_x_r
+#7133
+1%tc_l_r
+#7135
+1%c_r_a
+#11888
+1%c_l_r
+#13025
+1%tc_r_a
+#14865
+1%tc_x_a
+#78391
+0%c_l_r
+#78406
+0%c_x_r
+#78910
+0%tc_x_a
+#79365
+0%tc_l_r
+#79385
+0%c_r_a
+#85446
+0%tc_r_a
+#85509
+1%tc_p_1
+#129607
+1%c_p_a
+#143335
+0%tc_p_1
+#152464
+0%c_p_a
+#195712
+1%c_x_r
+#232643
+1%tc_l_r
+#247365
+1%c_l_r
+#277145
+1%c_r_a
+#290994
+1%tc_r_a
+#305337
+0%c_l_r
+#316228
+1%tc_x_a
+#316229
+0%c_x_r

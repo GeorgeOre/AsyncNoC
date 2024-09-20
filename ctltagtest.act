@@ -1,0 +1,266 @@
+/*;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                                                                              ;
+;                                ctlhtest.act  	                               ;
+;                                 George Ore                                   ;
+;                                                                              ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+ Description: This file contains modules used to test the capabilies of a relay
+               NoC. This is a test of that test.
+ Goal: Fine tune the testing environment for the NoC.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                            Required Namespace Imports                        */
+import sim;     // Simulation library namespace
+/*;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                            Table of Contents
+        Process Name    |       Purpose
+    ctl_h           |   Simulates a child that actively sends data on a bus
+    test_ctl_h           |   Simulates a child that actively sends data on a bus
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ Revision History:  09/19/24 George Ore First instance of code
+                    09/19/24 George Ore Formated file
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;*/
+
+/*******************************************************************************
+;*                              PROCESSES                                      *
+;******************************************************************************/
+
+/*
+Custom Modules
+*/
+
+/*  ctl_tag 
+
+    Contains the PRS for the combination of address tagging and sequence control blocks.
+
+    reset - signal to reset this thing??
+
+
+*/
+defproc ctl_tag(bool? reset;        //For reseting
+                bool? l_r; bool? r_a; bool? x_r; bool? p_a; //Inputs 
+		        bool! l_a; bool! r_r; bool! x_a; bool! p_0; //Outputs
+                bool! p_1){
+
+    // state variable
+    bool a_r; bool a_a;
+    bool f; bool g;
+    bool n; bool m;
+     prs {
+
+        //CTL
+        ~reset & (x_r | l_r ) & (~a_a) -> r_r+ 
+        reset | (a_a) -> r_r-
+
+        ~reset & l_a -> a_r+
+        reset | (~l_a) -> a_r-
+
+        ~reset & (l_r & r_a) -> l_a+
+        reset | (~r_a) -> l_a-
+
+
+        //TAG
+        ~reset & (m & a_r) -> x_a+
+        reset | (f & ~m) -> x_a-
+
+        ~reset & (f & ~m & ~x_a) | g -> a_a+
+        reset | (~p_a & ~f & (~g | ~p_0)) -> a_a-
+
+        ~reset & (g & a_a & ~n) -> p_0+
+        reset | (~g) -> p_0-
+
+        ~reset & (f & ~a_r) -> p_1+
+        reset | (~f) -> p_1-
+
+        ~reset & (x_a) -> f+
+        reset | (p_a) -> f-
+
+        ~reset & (n) -> g+
+        reset | (p_a) -> g-
+
+        ~reset & (~a_a & ~f & ~g & x_r & ~n) -> m+
+        reset | (~x_r) -> m-
+
+        ~reset & (~a_a & ~f & ~g & a_r & ~m) -> n+
+        reset | (~a_r) -> n-
+
+    }
+}
+
+/*
+Testing Modules
+*/
+
+/* test_ctl_tag:
+
+ Description: Emulates the final output bus for packets to be sent & processed.
+        This is a root is designed to take in any combination of data 
+        permutations from the input bus. In testing, these ports can be watched.
+
+ Operation: The root begins by setting its output low. Then it waits for one
+        of the deterministically defined input permutations. Once all are 
+        received, it sends an acknowledge and waits until all data is off
+        to deactivate the acknowledge.
+
+ Features:
+    - 4 bit (8 line) input processing
+    - Can receive any permutation of data input
+    - Sends acks to the sender
+
+ Input Ports:   Name    |   Purpose
+                c[8]    |   8 bit bus containing child data   
+
+ Output Ports:  Name    |   Purpose
+                c_a     |   Child acknowledge
+
+ Error Handling:    None.
+ Known Bugs:        None.
+ Limitations:       None.
+
+ Revision History:  09/15/24    George Ore  First instance of code
+                    09/16/24    George Ore  Made it work good
+
+ Pseudo Code
+   all_out_off();
+   while(1)
+       wait_for_child_data_on()
+       ack_on()
+       wait_for_child_data_off()
+       ack_off()
+*/
+defproc test_ctl_tag(bool? reset;
+                    bool? r_a; bool? l_r; bool? x_a; bool? p_0; bool? p_1;
+                    bool! r_r; bool! l_a; bool! x_r; bool! p_a){
+
+    hse { 
+            [reset -> r_r-; l_a-; x_r-; p_a-];
+            log("finished init inside test ctl tag control");
+            [~reset];
+            log("reset off in test ctl tag control");
+
+            *[ 
+
+            /*Test case there x activates and l takes a while*/
+            //X
+                x_r+;
+            //L
+                [l_r]; l_a+;
+            //R
+                r_r+; [r_a];
+            //R-
+                r_r-;
+            //X
+                [x_a]; x_r-; [~x_a];
+            //L
+                [~l_r]; l_a-;
+            //R--
+                [~r_a];
+            //P_1
+                [p_1]; p_a+; [~p_1]; p_a-;
+
+            /*Test case there x activates and l comes super fast*/
+            //X
+                x_r+;
+            //R+
+                r_r+;
+            //L
+                [l_r]; l_a+;
+            //R++
+                [r_a];
+            //R-
+                r_r-;
+            //X
+                [x_a]; x_r-; [~x_a];
+            //L
+                [~l_r]; l_a-;
+            //R--
+                [~r_a];
+            //P_1
+                [p_1]; p_a+; [~p_1]; p_a-;
+
+            /*Test case where l activates and x does not*/
+            //R
+                r_r+;
+            //L
+                [l_r]; l_a+;
+            //R
+                [r_a];
+            //R
+                r_r-;
+            //L
+                [~l_r]; l_a-;
+            //R
+                [~r_a];
+            //P_0
+                [p_0]; p_a+; [~p_0]; p_a-;
+
+
+            /*Test case where l activates and x activates after*/
+
+            //R
+                r_r+;
+            //X
+                x_r+;
+            //L
+                [l_r]; l_a+;
+            //R
+                [r_a];
+            //R
+                r_r-;
+            //L
+                [~l_r]; l_a-;
+            //R
+                [~r_a];
+            //P_0
+                [p_0]; p_a+; [~p_0]; p_a-;
+            //L
+                [l_r]; l_a+;
+            //R
+                r_r+; [r_a];
+            //R-
+                r_r-;
+            //X
+                [x_a]; x_r-; [~x_a];
+            //L
+                [~l_r]; l_a-;
+            //R--
+                [~r_a];
+            //P_1
+                [p_1]; p_a+; [~p_1]; p_a-
+
+            ]
+        }
+}
+
+defproc test(){
+    // Setup reset signal
+    bool reset;
+
+    // Define the ctl-tag process
+    ctl_tag c;
+
+    // Define the test module
+	test_ctl_tag tc;
+
+    //Connect all reset signals
+    c.reset = reset;
+    tc.reset = reset;
+
+    // Connect ctl_tag and test control input wires
+    tc.l_r = c.r_r;
+    c.l_r = tc.r_r;
+    
+    c.r_a = tc.l_a;
+    tc.r_a = c.l_a;
+    
+	c.x_r = tc.x_r; 
+    c.p_a = tc.p_a;
+
+    tc.x_a = c.x_a;
+
+    tc.p_0 = c.p_0;
+    tc.p_1 = c.p_1;
+
+}
+

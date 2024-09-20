@@ -97,26 +97,21 @@ defproc ctl_tag(bool? reset;        //For reseting
 
 */
 defproc ctl_h(bool? reset;        //For reseting
-                bool? l_r; bool? r_a; bool? p_a; //Inputs 
+                bool? l_r; bool? r_a; //bool? p_a; //Inputs 
 		        bool? p_0; bool? p_1;
-                bool! l_a; bool! r_r; bool! p_f //Outputs
+                bool! l_a; bool! r_r; bool! p_t //Outputs
                 ){
 
-    // state variable
-    bool a_r; bool a_a;
-    bool f; bool g;
-    bool n; bool m;
      prs {
 
-        //CTL
         ~reset & (l_a) & (~r_a) -> r_r+ 
         reset | r_a -> r_r-
 
         ~reset & (l_r) -> l_a+
         reset | (~l_r) -> l_a-
 
-        ~reset & ( p_0 | p_1 ) -> p_f+
-        reset | ( ~p_0 & ~p_1 ) -> p_f-
+        ~reset & ( p_0 | p_1 ) -> p_t+
+        reset | ( ~p_0 & ~p_1 ) -> p_t-
     }
 }
 
