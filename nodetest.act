@@ -52,13 +52,13 @@ defproc ctl_tag(bool? reset;        //For reseting
 
         //CTL
         ~reset & (x_r | l_r) & (~a_a) -> r_r+ 
-        reset | (~x_r & ~l_r & a_a) -> r_r-
+        reset | ((~x_r & ~l_r) & a_a) -> r_r-
 
         ~reset & (l_a & ~l_r) -> a_r+
         reset | (~l_a | l_r) -> a_r-
 
         ~reset & (l_r & r_a) -> l_a+
-        reset | (~l_r &~r_a) -> l_a-
+        reset | (~l_r & ~r_a) -> l_a-
 
 
         //TAG
@@ -106,7 +106,7 @@ defproc ctl_h(bool? reset;        //For reseting
      prs {
 
         ~reset & (l_a) & (~r_a) -> r_r+ 
-        reset | r_a -> r_r-
+        reset | (~l_a | r_a) -> r_r-
 
         ~reset & (l_r) -> l_a+
         reset | (~l_r) -> l_a-
@@ -217,7 +217,7 @@ defproc selector(bool? reset;             //For reseting
                 bool! b0_ack; //Acks back to the buffers, tags, and ctl-h
                 bool! b1_ack; bool! b2_ack;
                 bool! T0_ack; bool! T1_ack;
-                bool! T2_ack; bool! ch_ack){
+                bool! T2_ack/*; bool! ch_ack*/){
 
      prs {
 
@@ -283,9 +283,9 @@ defproc selector(bool? reset;             //For reseting
         ~reset & ack & (T2_0|T2_1) -> T2_ack+ 
         reset | ~ack & (~T2_0 & ~T2_1) -> T2_ack-
 
-        //ch_ack
-        ~reset & ack & (ch_1) -> ch_ack+ 
-        reset | ~ack & (~ch_1) -> ch_ack-
+        // //ch_ack
+        // ~reset & ack & (ch_1) -> ch_ack+ 
+        // reset | ~ack & (~ch_1) -> ch_ack-
 
     }
 }
@@ -340,8 +340,6 @@ defproc node(bool? reset;             //For reseting
     s.reset = reset;
 
     // Connect ctl_h and ctl_tag input wires
-    // ch.p_a = s.ch_ack; 
-
     c0.l_r = ch.r_r;
     c1.l_r = c0.r_r;
     c2.l_r = c1.r_r;
@@ -351,8 +349,8 @@ defproc node(bool? reset;             //For reseting
     c0.r_a = c1.l_a;
     c1.r_a = c2.l_a;
     c2.r_a = ch.l_a;
-    
-	ch.p_0 = b0.p0_0; 
+
+	ch.p_0 = b0.p0_0;
     ch.p_1 = b0.p0_1;
 
     c0.x_r = b0.x_r;
@@ -363,7 +361,7 @@ defproc node(bool? reset;             //For reseting
     c1.p_a = s.T1_ack;
     c2.p_a = s.T2_ack;
 
-    // Connect buffer input wires
+     // Connect buffer input wires
     b0.p_a = s.b0_ack;
     b1.p_a = s.b1_ack;
     b2.p_a = s.b2_ack;
@@ -372,32 +370,32 @@ defproc node(bool? reset;             //For reseting
     b1.x_a = c1.x_a;
     b2.x_a = c2.x_a;
 
-	b0.c0_0 = c0.p_0;
-    b0.c0_1 = c0.p_1;
-    b0.c1_0 = c0.p_0;
-    b0.c1_1 = c0.p_1;
-    b0.c2_0 = c0.p_0;
-    b0.c2_1 = c0.p_1;
-    b0.ct_0 = c0.p_0;
-    b0.ct_1 = c0.p_1;
+	b0.c0_0 = tc0_0_0;
+    b0.c0_1 = tc0_0_1;
+    b0.c1_0 = tc0_1_0;
+    b0.c1_1 = tc0_1_1;
+    b0.c2_0 = tc0_2_0;
+    b0.c2_1 = tc0_2_1;
+    b0.ct_0 = tc0_t_0;
+    b0.ct_1 = tc0_t_1;
 
-	b1.c0_0 = c1.p_0;
-    b1.c0_1 = c1.p_1;
-    b1.c1_0 = c1.p_0;
-    b1.c1_1 = c1.p_1;
-    b1.c2_0 = c1.p_0;
-    b1.c2_1 = c1.p_1;
-    b1.ct_0 = c1.p_0;
-    b1.ct_1 = c1.p_1;
+	b1.c0_0 = tc1_0_0;
+    b1.c0_1 = tc1_0_1;
+    b1.c1_0 = tc1_1_0;
+    b1.c1_1 = tc1_1_1;
+    b1.c2_0 = tc1_2_0;
+    b1.c2_1 = tc1_2_1;
+    b1.ct_0 = tc1_t_0;
+    b1.ct_1 = tc1_t_1;
 
-	b2.c0_0 = c2.p_0;
-    b2.c0_1 = c2.p_1;
-    b2.c1_0 = c2.p_0;
-    b2.c1_1 = c2.p_1;
-    b2.c2_0 = c2.p_0;
-    b2.c2_1 = c2.p_1;
-    b2.ct_0 = c2.p_0;
-    b2.ct_1 = c2.p_1;
+	b2.c0_0 = tc2_0_0;
+    b2.c0_1 = tc2_0_1;
+    b2.c1_0 = tc2_1_0;
+    b2.c1_1 = tc2_1_1;
+    b2.c2_0 = tc2_2_0;
+    b2.c2_1 = tc2_2_1;
+    b2.ct_0 = tc2_t_0;
+    b2.ct_1 = tc2_t_1;
 
     // Connect selector input wires
     s.b0_0_0 = b0.p0_0;
@@ -430,17 +428,29 @@ defproc node(bool? reset;             //For reseting
     s.T1_1 = c1.p_1;
     s.T2_0 = c2.p_0;
     s.T2_1 = c2.p_1;
-
     s.ch_1 = ch.p_t;
+
     s.ack = ack;
 
-}
+    // Assign node outputs    
+    p0_0 = s.p0_0;
+    p0_1 = s.p0_1;
+    p1_0 = s.p1_0;
+    p1_1 = s.p1_1;
+    p2_0 = s.p2_0;
+    p2_1 = s.p2_1;
+    pt_0 = s.pt_0;
+    pt_1 = s.pt_1;
+    tc0_ack = b0.c_a;
+    tc1_ack = b1.c_a;
+    tc2_ack = b2.c_a;
 
+//CH-ACK IS NOT REAL
+}
 
 /*
 Testing Modules
 */
-
 
 /* test_child:
 
@@ -524,9 +534,9 @@ defproc test_child(bool! p0_0; bool! p0_1;   //Output channels
         log("reset off in test child");
 
         *[ /* fire if random chance condition is met */
-            log("inside loop");
+            // log("inside loop");
             R?randc;     //Roll for activation
-            log("just rolled");
+            // log("just rolled");
             [(randc = 3) ->
                 //OMG YOU GOT LUCKY IT ACTIVATED
                 log("omg lucky");
@@ -559,7 +569,7 @@ defproc test_child(bool! p0_0; bool! p0_1;   //Output channels
                 ]
             [] (randc != 3) -> 
                 //If not then you are unlucky :(
-                log("unlucky");
+                // log("unlucky");
                 skip
             ]
             //ADD A WAIT OR DELAY???????
@@ -693,24 +703,29 @@ defproc test(){
     n.tc0_1_0 = tc0.p1_0;
     n.tc0_1_1 = tc0.p1_1;
     n.tc0_2_0 = tc0.p2_0;
-    n.tc0_1_1 = tc0.p2_1;
+    n.tc0_2_1 = tc0.p2_1;
+    n.tc0_t_0 = tc0.pt_0;
+    n.tc0_t_1 = tc0.pt_1;
 
     n.tc1_0_0 = tc1.p0_0; 
     n.tc1_0_1 = tc1.p0_1;
     n.tc1_1_0 = tc1.p1_0;
     n.tc1_1_1 = tc1.p1_1;
     n.tc1_2_0 = tc1.p2_0;
-    n.tc1_1_1 = tc1.p2_1;
+    n.tc1_2_1 = tc1.p2_1;
+    n.tc1_t_0 = tc1.pt_0;
+    n.tc1_t_1 = tc1.pt_1;
 
     n.tc2_0_0 = tc2.p0_0; 
     n.tc2_0_1 = tc2.p0_1;
     n.tc2_1_0 = tc2.p1_0;
     n.tc2_1_1 = tc2.p1_1;
     n.tc2_2_0 = tc2.p2_0;
-    n.tc2_1_1 = tc2.p2_1;
+    n.tc2_2_1 = tc2.p2_1;
+    n.tc2_t_0 = tc2.pt_0;
+    n.tc2_t_1 = tc2.pt_1;
 
     n.ack = tr.c_a; 
-
 
 }
 

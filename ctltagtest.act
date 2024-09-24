@@ -50,40 +50,40 @@ defproc ctl_tag(bool? reset;        //For reseting
      prs {
 
         //CTL
-        ~reset & (x_r | l_r ) & (~a_a) -> r_r+ 
-        reset | (a_a) -> r_r-
+        ~reset & (x_r | l_r) & (~a_a) -> r_r+ 
+        reset | (~x_r & ~l_r & a_a) -> r_r-
 
-        ~reset & l_a -> a_r+
-        reset | (~l_a) -> a_r-
+        ~reset & (l_a & ~l_r) -> a_r+
+        reset | (~l_a | l_r) -> a_r-
 
         ~reset & (l_r & r_a) -> l_a+
-        reset | (~r_a) -> l_a-
+        reset | (~l_r &~r_a) -> l_a-
 
 
         //TAG
-        ~reset & (m & a_r) -> x_a+
-        reset | (f & ~m) -> x_a-
+        ~reset & (~f & m & a_r) -> x_a+
+        reset | (f & ~m | ~a_r) -> x_a-
 
-        ~reset & (f & ~m & ~x_a) | g -> a_a+
-        reset | (~p_a & ~f & (~g & ~p_0)) -> a_a-
+        ~reset & (p_a | (f & ~m & ~x_a) | (g | p_0)) -> a_a+
+        reset | (~p_a & (~f | m | x_a) & (~g & ~p_0)) -> a_a-
 
         ~reset & (g & a_a & ~n) -> p_0+
-        reset | (~g) -> p_0-
+        reset | (~g | ~a_a | n) -> p_0-
 
         ~reset & (f & ~a_r) -> p_1+
-        reset | (~f) -> p_1-
+        reset | (~f | a_r) -> p_1-
 
-        ~reset & (x_a) -> f+
-        reset | (p_a) -> f-
+        ~reset & (~p_a & x_a) -> f+
+        reset | (p_a & ~x_a) -> f-
 
-        ~reset & (n) -> g+
-        reset | (p_a) -> g-
+        ~reset & (~p_a & n) -> g+
+        reset | (p_a & ~n) -> g-
 
         ~reset & (~a_a & ~f & ~g & x_r & ~n) -> m+
-        reset | (~x_r) -> m-
+        reset | ((~x_r | n ) & f) -> m-
 
-        ~reset & (~a_a & ~f & ~g & a_r & ~m) -> n+
-        reset | (~a_r) -> n-
+        ~reset & (~a_a & ~f & ~g & a_r & ~m & ~x_r) -> n+
+        reset | (~a_r | m) -> n-
 
     }
 }
@@ -142,6 +142,7 @@ defproc test_ctl_tag(bool? reset;
             *[ 
 
             /*Test case there x activates and l takes a while*/
+            log("Test case there x activates and l takes a while");
             //X
                 x_r+;
             //L
@@ -160,6 +161,7 @@ defproc test_ctl_tag(bool? reset;
                 [p_1]; p_a+; [~p_1]; p_a-;
 
             /*Test case there x activates and l comes super fast*/
+            log("Test case there x activates and l comes super fast");
             //X
                 x_r+;
             //R+
@@ -180,6 +182,7 @@ defproc test_ctl_tag(bool? reset;
                 [p_1]; p_a+; [~p_1]; p_a-;
 
             /*Test case where l activates and x does not*/
+            log("Test case where l activates and x does not");
             //R
                 r_r+;
             //L
@@ -197,7 +200,7 @@ defproc test_ctl_tag(bool? reset;
 
 
             /*Test case where l activates and x activates after*/
-
+            log("Test case where l activates and x activates after");
             //R
                 r_r+;
             //X
@@ -208,27 +211,25 @@ defproc test_ctl_tag(bool? reset;
                 [r_a];
             //R
                 r_r-;
+            //X?????
+            [   x_r -> 
+                log("x_r was activated");
+                [x_a]; x_r-; [~x_a];
             //L
                 [~l_r]; l_a-;
             //R
                 [~r_a];
             //P_0
-                [p_0]; p_a+; [~p_0]; p_a-;
-            //L
-                [l_r]; l_a+;
-            //R
-                r_r+; [r_a];
-            //R-
-                r_r-;
-            //X
-                [x_a]; x_r-; [~x_a];
+                [p_1]; p_a+; [~p_1]; p_a-
+            [] ~x_r ->
+                log("x_r was not activated");
             //L
                 [~l_r]; l_a-;
             //R--
                 [~r_a];
             //P_1
-                [p_1]; p_a+; [~p_1]; p_a-
-
+                [p_0]; p_a+; [~p_0]; p_a-
+                ]
             ]
         }
 }

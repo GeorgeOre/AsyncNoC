@@ -211,7 +211,9 @@ defproc child_control(bool! q_r[4]; bool? q_a[4]; bool? reset){
                 [~q_a[2]];
 
                 q_r[3]-;
-                [~q_a[3]]
+                [~q_a[3]];
+                log("ok the control sequence has finished")
+
             ]
         }
 
@@ -265,6 +267,7 @@ defproc test_child(bool! p[7]; bool? p_a; bool? reset;
             log("reset off in test root");
 
             //Send various permutations of data
+            *[
                 [q_r];
                 p[0]+, p[2]+, p[4]+, p[6]+;    //0000
                 [p_a];
@@ -320,7 +323,7 @@ defproc test_child(bool! p[7]; bool? p_a; bool? reset;
                 p[1]-, p[3]-, p[5]-, p[6]-; 
                 [~p_a];
                 q_a-
-
+            ]
         }
 
 }
@@ -373,6 +376,7 @@ defproc test_child2(bool! p[7]; bool? p_a0; bool? p_a1; bool? p_a2; bool? p_a3; 
             log("reset off in test root");
 
             //Send various permutations of data
+            *[
                 [q_r];
                 p[0]+, p[2]+, p[4]+, p[6]+;    //0000
                 [p_a0 & p_a1 & p_a2 & p_a3];
@@ -428,7 +432,7 @@ defproc test_child2(bool! p[7]; bool? p_a0; bool? p_a1; bool? p_a2; bool? p_a3; 
                 p[1]-, p[3]-, p[5]-, p[6]-; 
                 [~p_a0 & ~p_a1 & ~p_a2 & ~p_a3];
                 q_a-
-
+            ]
         }
 
 }
@@ -511,147 +515,6 @@ defproc test_root(bool? reset; bool? c[8]; bool! c_a){
 
             //Acknowledge that foo
             c_a-
-            ]
-        }
-}
-
-/* test_ctl_tag:
-
- Description: Emulates the final output bus for packets to be sent & processed.
-        This is a root is designed to take in any combination of data 
-        permutations from the input bus. In testing, these ports can be watched.
-
- Operation: The root begins by setting its output low. Then it waits for one
-        of the deterministically defined input permutations. Once all are 
-        received, it sends an acknowledge and waits until all data is off
-        to deactivate the acknowledge.
-
- Features:
-    - 4 bit (8 line) input processing
-    - Can receive any permutation of data input
-    - Sends acks to the sender
-
- Input Ports:   Name    |   Purpose
-                c[8]    |   8 bit bus containing child data   
-
- Output Ports:  Name    |   Purpose
-                c_a     |   Child acknowledge
-
- Error Handling:    None.
- Known Bugs:        None.
- Limitations:       None.
-
- Revision History:  09/15/24    George Ore  First instance of code
-                    09/16/24    George Ore  Made it work good
-
- Pseudo Code
-   all_out_off();
-   while(1)
-       wait_for_child_data_on()
-       ack_on()
-       wait_for_child_data_off()
-       ack_off()
-*/
-defproc test_ctl_tag(bool? reset;
-                    bool? r_a; bool? l_r; bool? x_a; bool? p_0; bool? p_1;
-                    bool! r_r; bool! l_a; bool! x_r; bool! p_a){
-
-    hse { 
-            [reset -> r_r-; l_a-; x_r-; p_a-];
-            log("finished init inside test ctl tag control");
-            [~reset];
-            log("reset off in test ctl tag control");
-
-            *[ 
-
-            /*Test case there x activates and l takes a while*/
-            //X
-                x_r+;
-            //L
-                [l_r]; l_a+;
-            //R
-                r_r+; [r_a];
-            //R-
-                r_r-;
-            //X
-                [x_a]; x_r-; [~x_a];
-            //L
-                [~l_r]; l_a-;
-            //R--
-                [~r_a];
-            //P_1
-                [p_1]; p_a+; [~p_1]; p_a-;
-
-            /*Test case there x activates and l comes super fast*/
-            //X
-                x_r+;
-            //R+
-                r_r+;
-            //L
-                [l_r]; l_a+;
-            //R++
-                [r_a];
-            //R-
-                r_r-;
-            //X
-                [x_a]; x_r-; [~x_a];
-            //L
-                [~l_r]; l_a-;
-            //R--
-                [~r_a];
-            //P_1
-                [p_1]; p_a+; [~p_1]; p_a-;
-
-            /*Test case where l activates and x does not*/
-            //R
-                r_r+;
-            //L
-                [l_r]; l_a+;
-            //R
-                [r_a];
-            //R
-                r_r-;
-            //L
-                [~l_r]; l_a-;
-            //R
-                [~r_a];
-            //P_0
-                [p_0]; p_a+; [~p_0]; p_a-;
-
-
-            /*Test case where l activates and x activates after*/
-
-            //R
-                r_r+;
-            //X
-                x_r+;
-            //L
-                [l_r]; l_a+;
-            //R
-                [r_a];
-            //R
-                r_r-;
-            //L
-                [~l_r]; l_a-;
-            //R
-                [~r_a];
-            //P_0
-                [p_0]; p_a+; [~p_0]; p_a-;
-            //L
-                [l_r]; l_a+;
-            //R
-                r_r+; [r_a];
-            //R-
-                r_r-;
-            //X
-                [x_a]; x_r-; [~x_a];
-            //L
-                [~l_r]; l_a-;
-            //R--
-                [~r_a];
-            //P_1
-                [p_1]; p_a+; [~p_1]; p_a-
-
             ]
         }
 }
