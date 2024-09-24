@@ -51,27 +51,27 @@ defproc ctl_tag(bool? reset;        //For reseting
 
         //CTL
         ~reset & (x_r | l_r) & (~a_a) -> r_r+ 
-        reset | (~x_r & ~l_r & a_a) -> r_r-
+        reset | (a_a) -> r_r-
 
         ~reset & (l_a & ~l_r) -> a_r+
-        reset | (~l_a | l_r) -> a_r-
+        reset | (~l_a) -> a_r-
 
         ~reset & (l_r & r_a) -> l_a+
-        reset | (~l_r &~r_a) -> l_a-
+        reset | (~r_a) -> l_a-
 
 
         //TAG
-        ~reset & (~f & m & a_r) -> x_a+
-        reset | (f & ~m | ~a_r) -> x_a-
+        ~reset & (m & a_r) -> x_a+
+        reset | (f & ~m) -> x_a-
 
-        ~reset & (p_a | (f & ~m & ~x_a) | (g | p_0)) -> a_a+
-        reset | (~p_a & (~f | m | x_a) & (~g & ~p_0)) -> a_a-
+        ~reset & ((f & ~m & ~x_a) | (g)) -> a_a+
+        reset | (~p_a & (~f) & (~g & ~p_0)) -> a_a-
 
         ~reset & (g & a_a & ~n) -> p_0+
-        reset | (~g | ~a_a | n) -> p_0-
+        reset | (~g) -> p_0-
 
         ~reset & (f & ~a_r) -> p_1+
-        reset | (~f | a_r) -> p_1-
+        reset | (~f) -> p_1-
 
         ~reset & (~p_a & x_a) -> f+
         reset | (p_a & ~x_a) -> f-
@@ -80,10 +80,10 @@ defproc ctl_tag(bool? reset;        //For reseting
         reset | (p_a & ~n) -> g-
 
         ~reset & (~a_a & ~f & ~g & x_r & ~n) -> m+
-        reset | ((~x_r | n ) & f) -> m-
+        reset | ((~x_r) & f) -> m-
 
         ~reset & (~a_a & ~f & ~g & a_r & ~m & ~x_r) -> n+
-        reset | (~a_r | m) -> n-
+        reset | (~a_r) -> n-
 
     }
 }

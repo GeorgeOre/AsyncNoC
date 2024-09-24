@@ -52,7 +52,7 @@ defproc ctl_tag(bool? reset;        //For reseting
 
         //CTL
         ~reset & (x_r | l_r) & (~a_a) -> r_r+ 
-        reset | ((~x_r & ~l_r) & a_a) -> r_r-
+        reset | (~l_r & a_a) -> r_r-
 
         ~reset & (l_a & ~l_r) -> a_r+
         reset | (~l_a | l_r) -> a_r-
@@ -106,7 +106,7 @@ defproc ctl_h(bool? reset;        //For reseting
      prs {
 
         ~reset & (l_a) & (~r_a) -> r_r+ 
-        reset | (~l_a | r_a) -> r_r-
+        reset | r_a -> r_r-
 
         ~reset & (l_r) -> l_a+
         reset | (~l_r) -> l_a-
@@ -141,11 +141,11 @@ defproc buffer(bool? reset;             //For reseting
      prs {
 
         //a
-        ~reset & ct_1 & p_a -> a+ 
-        reset | (~x_a) -> a-
+        ~reset & (ct_1 & p_a) -> a+ 
+        reset | ( ~x_a) -> a-
 
         //x_r
-        ~reset & ct_0 -> x_r+
+        ~reset & (ct_0) -> x_r+
         reset | (~p_a & a) -> x_r-
 
         //c_a
@@ -217,7 +217,7 @@ defproc selector(bool? reset;             //For reseting
                 bool! b0_ack; //Acks back to the buffers, tags, and ctl-h
                 bool! b1_ack; bool! b2_ack;
                 bool! T0_ack; bool! T1_ack;
-                bool! T2_ack/*; bool! ch_ack*/){
+                bool! T2_ack; bool! ch_ack){
 
      prs {
 
@@ -283,9 +283,9 @@ defproc selector(bool? reset;             //For reseting
         ~reset & ack & (T2_0|T2_1) -> T2_ack+ 
         reset | ~ack & (~T2_0 & ~T2_1) -> T2_ack-
 
-        // //ch_ack
-        // ~reset & ack & (ch_1) -> ch_ack+ 
-        // reset | ~ack & (~ch_1) -> ch_ack-
+        //ch_ack
+        ~reset & ack & (ch_1) -> ch_ack+ 
+        reset | ~ack & (~ch_1) -> ch_ack-
 
     }
 }

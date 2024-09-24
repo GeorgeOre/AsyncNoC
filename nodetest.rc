@@ -12,7 +12,7 @@ status X
 status 1
 status 0
 
-watch "n.tc0_0_0" "n.tc0_0_1" "n.tc0_1_0" "n.tc0_1_1" "n.tc0_2_0" "n.tc0_2_1" "n.tc0_t_0" "n.tc0_t_1" "n.tc1_0_0" "n.tc1_0_1" "n.tc1_1_0" "n.tc1_1_1" "n.tc1_2_0" "n.tc1_2_1" "n.tc1_t_0" "n.tc1_t_1" "n.tc2_0_0" "n.tc2_0_1" "n.tc2_1_0" "n.tc2_1_1" "n.tc2_2_0" "n.tc2_2_1" "n.tc2_t_0" "n.tc2_t_1" "n.ack" "n.p0_0" "n.p0_1" "n.p1_0" "n.p1_1" "n.p2_0" "n.p2_1" "n.pt_0" "n.pt_1" "n.tc0_ack" "n.tc1_ack" "n.tc2_ack" "n.ch.l_r" "n.ch.l_a" "n.ch.r_a" "n.ch.r_r" "n.c0.l_r" "n.c0.l_a" "n.c0.r_r" "n.c0.r_a" "n.c0.x_r" "n.c0.x_a" "n.c1.l_r" "n.c1.l_a" "n.c1.r_r" "n.c1.r_a" "n.c1.x_r" "n.c1.x_a" "n.c2.l_r" "n.c2.l_a" "n.c2.r_r" "n.c2.r_a" "n.c2.x_r" "n.c2.x_a" "n.c0.a_r" "n.c0.a_a" "n.c1.a_r" "n.c1.a_a" "n.c2.a_r" "n.c2.a_a"
+watch "n.tc0_0_0" "n.tc0_0_1" "n.tc0_1_0" "n.tc0_1_1" "n.tc0_2_0" "n.tc0_2_1" "n.tc0_t_0" "n.tc0_t_1" "n.tc1_0_0" "n.tc1_0_1" "n.tc1_1_0" "n.tc1_1_1" "n.tc1_2_0" "n.tc1_2_1" "n.tc1_t_0" "n.tc1_t_1" "n.tc2_0_0" "n.tc2_0_1" "n.tc2_1_0" "n.tc2_1_1" "n.tc2_2_0" "n.tc2_2_1" "n.tc2_t_0" "n.tc2_t_1" "n.ack" "n.p0_0" "n.p0_1" "n.p1_0" "n.p1_1" "n.p2_0" "n.p2_1" "n.pt_0" "n.pt_1" "n.tc0_ack" "n.tc1_ack" "n.tc2_ack" "n.ch.l_r" "n.ch.l_a" "n.ch.r_a" "n.ch.r_r" "n.c0.l_r" "n.c0.l_a" "n.c0.r_r" "n.c0.r_a" "n.c0.x_r" "n.c0.x_a" "n.c1.l_r" "n.c1.l_a" "n.c1.r_r" "n.c1.r_a" "n.c1.x_r" "n.c1.x_a" "n.c2.l_r" "n.c2.l_a" "n.c2.r_r" "n.c2.r_a" "n.c2.x_r" "n.c2.x_a" "n.c0.a_r" "n.c0.a_a" "n.c1.a_r" "n.c1.a_a" "n.c2.a_r" "n.c2.a_a" "n.ch.l_r" "n.ch.l_a" "n.ch.r_r" "n.ch.r_a" "n.b0.x_a" "n.b0.x_r"
 
 cycle
 status X
