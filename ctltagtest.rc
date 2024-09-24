@@ -12,7 +12,7 @@ status X
 status 1
 status 0
 
-watch "tc.l_r" "c.l_r" "tc.r_a" "c.r_a" "c.x_r" "c.p_a" "tc.x_a" "tc.p_0" "tc.p_1"
+watch "c.r_r" "c.l_r" "c.l_a" "c.r_a" "c.x_r" "c.p_a" "tc.x_a" "tc.p_0" "tc.p_1" "c.a_r" "c.a_a" "c.f" "c.g" "c.n" "c.m"
 
-advance 1000000000
+cycle
 status X

@@ -14,5 +14,5 @@ status 0
 
 watch "tch.l_r" "ch.l_r" "ch.r_a" "tch.r_a" "ch.p_0" "ch.p_1" "tch.p_t"
 
-advance 1000000000
+cycle
 status X
